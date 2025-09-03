@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  # Database Service
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ihjezly-db
+    ports:
+      - "14334:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Your_password123
+    volumes:
+      - sql_data:/var/opt/mssql
+    networks:
+      - ihjezly-network
+    restart: unless-stopped
+  # Backend API Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ihjezly-api
+    ports:
+      - "5050:5050"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=IhjezlyDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;Encrypt=False;
+    depends_on:
+      - db
+    networks:
+      - ihjezly-network
+    restart: unless-stopped
+
+
+volumes:
+  sql_data:
+
+networks:
+  ihjezly-network:
+    driver: bridge

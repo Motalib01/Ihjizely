@@ -1,0 +1,65 @@
+﻿using Ihjezly.Application.Abstractions.Messaging;
+using Ihjezly.Application.Abstractions.Payment;
+using Ihjezly.Application.Transactions.DTO;
+using Ihjezly.Domain.Abstractions;
+using Ihjezly.Domain.Shared;
+using Ihjezly.Domain.Transactions;
+
+namespace Ihjezly.Application.Transactions.AddFunds;
+
+public class AddFundsTransactionCommandHandler : ICommandHandler<AddFundsTransactionCommand, TransactionDto>
+{
+    private readonly IPaymentServiceFactory _paymentFactory;
+    private readonly IWalletRepository _walletRepository;
+    private readonly ITransactionRepository _transactionRepository;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public AddFundsTransactionCommandHandler(
+        IPaymentServiceFactory paymentFactory,
+        IWalletRepository walletRepository,
+        ITransactionRepository transactionRepository,
+        IUnitOfWork unitOfWork)
+    {
+        _paymentFactory = paymentFactory;
+        _walletRepository = walletRepository;
+        _transactionRepository = transactionRepository;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<Result<TransactionDto>> Handle(AddFundsTransactionCommand command, CancellationToken cancellationToken)
+    {
+        var wallet = await _walletRepository.GetByIdAsync(command.WalletId);
+        if (wallet is null)
+            return Result.Failure<TransactionDto>(TransactionErrors.WalletNotFound);
+
+        var service = _paymentFactory.GetService(command.PaymentMethod);
+
+        var (success, sessionId, error) = await service.StartPaymentAsync(
+            "payer-id",
+            command.Amount,
+            command.Currency,
+            command.Description);
+        if (!success)
+            return Result.Failure<TransactionDto>(new Error("Payment.Failed", error ?? "Unknown error"));
+
+        var (confirmed, confirmResult) = await service.ConfirmPaymentAsync(sessionId!);
+        if (!confirmed)
+            return Result.Failure<TransactionDto>(TransactionErrors.ConfirmationFailed);
+
+        wallet.AddFunds(new Money(command.Amount, Currency.FromCode(command.Currency)));
+
+        var transaction = Transaction.Create(wallet.Id, new Money(command.Amount, Currency.FromCode(command.Currency)), command.Description);
+        _transactionRepository.Add(transaction);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Result.Success(new TransactionDto(
+            transaction.Id,
+            transaction.WalletId,
+            transaction.Amount.Amount,
+            transaction.Amount.CurrencyCode,
+            transaction.Timestamp,
+            transaction.Description
+        ));
+    }
+}

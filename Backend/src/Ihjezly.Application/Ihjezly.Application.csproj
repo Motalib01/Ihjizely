@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.0.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+    <PackageReference Include="MediatR" Version="12.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ihjezly.Domain\Ihjezly.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Notifications\DTO\" />
+    <Folder Include="Notifications\DeleteNotification\" />
+    <Folder Include="Properties\Halls\GetHallPropertyById\" />
+    <Folder Include="Properties\GetPropertyById\" />
+    <Folder Include="Properties\Location\GetSelectableLocations\" />
+    <Folder Include="Properties\PropertySearch\" />
+    <Folder Include="SavedProperties\GetSavedPropertiesForUser\" />
+    <Folder Include="Subscriptions\CreateSubscriptionPlan\" />
+    <Folder Include="Transactions\AddFunds\" />
+    <Folder Include="Transactions\GetByUser\" />
+    <Folder Include="Users\GetAllUsers\" />
+    <Folder Include="Users\UpdateUser\" />
+    <Folder Include="Users\VerifyUser\" />
+    <Folder Include="Users\ResetPassword\" />
+    <Folder Include="Wallets\GetAllWallets\" />
+  </ItemGroup>
+
+</Project>
