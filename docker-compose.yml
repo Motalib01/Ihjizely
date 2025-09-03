@@ -53,7 +53,7 @@ services:
   # Frontend Service
   frontend:
     build:
-      context: ./ihjizely_admin
+      context: ./Ihjizely_Admin
       dockerfile: Dockerfile
     container_name: ihjizely-admin
     ports:
