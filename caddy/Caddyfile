@@ -2,8 +2,9 @@
     auto_https off
 }
 
-ihjezly.com, www.ihjezly.com {
+http://ihjezly.com, http://www.ihjezly.com, http://localhost {
     encode gzip
+
     root * /usr/share/caddy/admin
     file_server
 
