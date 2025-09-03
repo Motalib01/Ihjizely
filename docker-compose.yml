@@ -19,7 +19,7 @@ services:
       - ihjezly-network
     restart: unless-stopped
 
-  # Database Service
+  # Database
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: ihjezly-db
@@ -32,7 +32,7 @@ services:
       - ihjezly-network
     restart: unless-stopped
 
-  # Backend API Service
+  # Backend API
   api:
     build:
       context: ./Backend
@@ -47,7 +47,7 @@ services:
       - ihjezly-network
     restart: unless-stopped
 
-  # Frontend Service (build for production)
+  # Frontend
   frontend:
     build:
       context: ./Ihjizely_Admin

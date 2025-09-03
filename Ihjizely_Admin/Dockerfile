@@ -2,14 +2,12 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy source code and build
 COPY . .
-RUN npm run build   # creates /app/dist
+RUN npm run build   # produces /app/dist
 
-# Stage 2: Serve frontend with Caddy
+# Stage 2: Serve with Caddy (HTTP only)
 FROM caddy:alpine
 COPY --from=build /app/dist /usr/share/caddy
