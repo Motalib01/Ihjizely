@@ -6,8 +6,8 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-RUN npm run build   # produces /app/dist
+RUN npm run build   # creates /app/dist
 
-# Stage 2: Serve with Caddy (HTTP only)
-FROM caddy:alpine
-COPY --from=build /app/dist /usr/share/caddy
+# Stage 2: Serve files via nginx-lightweight (optional, or just use main Caddy)
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html

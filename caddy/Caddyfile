@@ -1,23 +1,16 @@
 ihjezly.com, www.ihjezly.com {
     encode gzip
 
-    # Redirect root / → /admin
     @root path /
     redir @root /admin
 
-    # Serve frontend
+    # Serve frontend static files from frontend container
     handle_path /admin* {
         reverse_proxy ihjezly-admin:80
     }
 
-    # Serve backend API
+    # Backend API
     handle_path /api* {
         reverse_proxy ihjezly-api:5050
     }
-}
-
-# Optional: API subdomain
-api.ihjezly.com {
-    encode gzip
-    reverse_proxy ihjezly-api:5050
 }
