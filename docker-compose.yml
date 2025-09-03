@@ -57,7 +57,7 @@ services:
       - ihjezly-network
     restart: unless-stopped
     environment:
-      - VITE_API_URL=https://ihjezly.com/api
+      - VITE_API_URL=http://ihjezly.com/api
 
 volumes:
   sql_data:

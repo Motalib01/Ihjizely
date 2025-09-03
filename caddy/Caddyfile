@@ -1,16 +1,17 @@
+{
+    auto_https off
+}
+
 ihjezly.com, www.ihjezly.com {
     encode gzip
+    root * /usr/share/caddy/admin
+    file_server
 
     @root path /
     redir @root /admin
 
-    # Serve frontend static files from frontend container
-    handle_path /admin* {
-        reverse_proxy ihjezly-admin:80
-    }
-
     # Backend API
     handle_path /api* {
-        reverse_proxy ihjezly-api:5050
+        reverse_proxy api:5050
     }
 }
