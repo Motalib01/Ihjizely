@@ -8,6 +8,6 @@ RUN npm install
 COPY . .
 RUN npm run build   # creates /app/dist
 
-# Stage 2: Serve files via nginx-lightweight (optional, or just use main Caddy)
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
+# Stage 2: Serve frontend with Caddy
+FROM caddy:alpine
+COPY --from=build /app/dist /usr/share/caddy/admin
