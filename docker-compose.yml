@@ -38,7 +38,7 @@ services:
       context: ./Backend
       dockerfile: Dockerfile
     container_name: ihjezly-api
-    expose:
+    ports:
       - "5050:5050"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
@@ -55,7 +55,7 @@ services:
       context: ./Ihjizely_Admin
       dockerfile: Dockerfile
     container_name: ihjizely-admin
-    expose:
+    ports:
       - "5173:5173"  # Vite dev server port
     networks:
       - ihjezly-network
