@@ -1,13 +1,11 @@
+# Frontend (Admin) served on main domain
 ihjezly.com {
-    @admin path /admin*  
-    reverse_proxy @admin frontend:5173
-
-    @api path /api*  
-    reverse_proxy @api api:5050
-
+    reverse_proxy /admin* frontend:5173
+    reverse_proxy /api* api:5050
     encode gzip
 }
 
+# Optional: API only subdomain
 api.ihjezly.com {
     reverse_proxy api:5050
     encode gzip
