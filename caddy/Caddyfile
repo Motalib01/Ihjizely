@@ -1,24 +1,16 @@
-# Main site (ihjezly.com and www.ihjezly.com)
+# Main site (frontend + backend)
 ihjezly.com, www.ihjezly.com {
     encode gzip
 
-    # Redirect root domain / → /admin
+    root * /usr/share/caddy/admin
+    file_server
+
+    # Redirect root / → /admin
     @root path /
     redir @root /admin
-
-    # Frontend admin
-    handle_path /admin* {
-        reverse_proxy frontend:5173
-    }
 
     # Backend API
     handle_path /api* {
         reverse_proxy api:5050
     }
-}
-
-# Optional: API subdomain
-api.ihjezly.com {
-    encode gzip
-    reverse_proxy api:5050
 }

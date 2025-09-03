@@ -52,7 +52,7 @@ services:
     build:
       context: ./Ihjizely_Admin
       dockerfile: Dockerfile
-    container_name: ihjizely-admin
+    container_name: ihjezly-admin
     networks:
       - ihjezly-network
     restart: unless-stopped
