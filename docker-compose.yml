@@ -1,0 +1,79 @@
+version: '3.9'
+
+services:
+   # Caddy reverse proxy
+  caddy:
+    image: caddy:latest
+    container_name: ihjezly-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - ihjezly-network
+    restart: unless-stopped
+  # Database Service
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ihjezly-db
+    ports:
+      - "14334:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Your_password123
+    volumes:
+      - sql_data:/var/opt/mssql
+    networks:
+      - ihjezly-network
+    restart: unless-stopped
+
+  # Backend API Service
+  api:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: ihjezly-api
+    ports:
+      - "5050:5050"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=IhjezlyDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;Encrypt=False;
+    depends_on:
+      - db
+    networks:
+      - ihjezly-network
+    restart: unless-stopped
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./ihjizely_admin
+      dockerfile: Dockerfile
+    container_name: ihjizely-admin
+    ports:
+      - "5173:5173"  # Vite dev server port
+    networks:
+      - ihjezly-network
+    restart: unless-stopped
+    environment:
+      - VITE_API_URL=https://ihjezly.com/api
+    volumes:
+      - ./ihjizely_admin:/app
+      - /app/node_modules
+    stdin_open: true  # Keep STDIN open
+    tty: true  # Allocate pseudo-TTY
+
+volumes:
+  sql_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  ihjezly-network:
+    driver: bridge
