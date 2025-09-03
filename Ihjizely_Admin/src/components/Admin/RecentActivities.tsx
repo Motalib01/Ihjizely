@@ -127,10 +127,10 @@ export default function RecentActivities() {
     { key: 'availableChalets', label: 'شاليهات متاحة' },
     { key: 'availableHotelApartments', label: 'شقق فندقية متاحة' },
     { key: 'availableResorts', label: 'منتجعات متاحة' },
-    { key: 'availableRestHouses', label: 'بيوت ريفية متاحة' },
+    { key: 'availableRestHouses', label: 'إستراحات متاحة' },
     { key: 'availableEventHallsSmall', label: 'قاعات أحداث صغيرة متاحة' },
     { key: 'availableEventHallsLarge', label: 'قاعات أحداث كبيرة متاحة' },
-    { key: 'availableMeetingRooms', label: 'غرف اجتماعات متاحة' }
+    { key: 'availableMeetingRooms', label: ' كافيهات متاحة' }
   ];
 
   const visibleStats = showAllStats ? statsEntries : statsEntries.slice(0, 4);
