@@ -1,14 +1,25 @@
-# Stage 1: Build frontend
-FROM node:20-alpine AS build
+#Devlopment
+#FROM node:20-alpine
+
+#WORKDIR /app
+#COPY package*.json ./
+#RUN npm install
+#COPY . .
+#EXPOSE 5173
+#CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+
+#production
+# Stage 1: Build with Node
+FROM node:20-alpine as build
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm install
 
 COPY . .
-RUN npm run build   # creates /app/dist
+RUN npm run build
 
-# Stage 2: Serve frontend with Caddy
-FROM caddy:alpine
-COPY --from=build /app/dist /usr/share/caddy/admin
+# Stage 2: Serve with Caddy
+FROM caddy:2-alpine
+COPY --from=build /app/dist /usr/share/caddy
 EXPOSE 80

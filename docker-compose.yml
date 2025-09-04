@@ -1,24 +1,6 @@
 version: '3.9'
 
 services:
-  # Caddy reverse proxy
-  caddy:
-    image: caddy:latest
-    container_name: ihjezly-caddy
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - api
-      - frontend
-    networks:
-      - ihjezly-network
-    restart: unless-stopped
-
   # Database
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -38,6 +20,8 @@ services:
       context: ./Backend
       dockerfile: Dockerfile
     container_name: ihjezly-api
+    ports:
+      - "5050:5050"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=db;Database=IhjezlyDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;Encrypt=False;
@@ -47,12 +31,33 @@ services:
       - ihjezly-network
     restart: unless-stopped
 
-  # Frontend
+  # Frontend (Production build served by Caddy)
   frontend:
     build:
       context: ./Ihjizely_Admin
       dockerfile: Dockerfile
-    container_name: ihjezly-admin
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://ihjezly.com/api}
+    container_name: ihjizely-admin
+    networks:
+      - ihjezly-network
+    restart: unless-stopped
+
+
+  # Caddy Reverse Proxy
+  caddy:
+    image: caddy:2-alpine
+    container_name: ihjezly-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - frontend
     networks:
       - ihjezly-network
     restart: unless-stopped

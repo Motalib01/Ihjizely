@@ -1,18 +1,29 @@
-{
-    auto_https off
-}
-
-http://ihjezly.com, http://www.ihjezly.com, http://localhost {
-    encode gzip
-
-    root * /usr/share/caddy/admin
-    file_server
-
-    @root path /
-    redir @root /admin
-
-    # Backend API
-    handle_path /api* {
-        reverse_proxy api:5050
+# Main domain configuration
+http://ihjezly.com, http://www.ihjezly.com {
+    # Handle API requests
+    handle /api/* {
+        reverse_proxy api:5050 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # Handle frontend requests
+    handle {
+        reverse_proxy frontend:80 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # Security headers
+    header {
+        X-Frame-Options DENY
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
     }
 }
