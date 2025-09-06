@@ -3,7 +3,7 @@ ihjezly.com, www.ihjezly.com {
 
     # API requests
     handle /api/* {
-        reverse_proxy api:5050 {
+        reverse_proxy api:5051 {
             header_up Host {host}
             header_up X-Real-IP {remote}
             header_up X-Forwarded-For {remote}
