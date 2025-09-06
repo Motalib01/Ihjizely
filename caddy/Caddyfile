@@ -26,4 +26,10 @@ http://ihjezly.com, http://www.ihjezly.com {
         X-Content-Type-Options nosniff
         Referrer-Policy strict-origin-when-cross-origin
     }
+
+     handle {
+        root * /usr/share/caddy
+        file_server
+        try_files {path} {path}/ /index.html
+    }
 }
