@@ -19,7 +19,7 @@ EXPOSE 5050 5051
 # Environment variables
 ENV ASPNETCORE_URLS=http://+:5050;https://+:5051
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV ASPNETCORE_Kestrel__Certificates__Default__Password=YourCertificatePassword
+ENV ASPNETCORE_Kestrel__Certificates__Default__Password=Ahmed@Host123
 ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
 
 # Create directory for certificates
