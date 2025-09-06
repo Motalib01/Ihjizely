@@ -19,7 +19,7 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve with Caddy
-FROM caddy:2-alpine
+# Production stage - copy built files to the right location
+FROM alpine:latest
+RUN mkdir -p /usr/share/caddy
 COPY --from=build /app/dist /usr/share/caddy
-EXPOSE 80

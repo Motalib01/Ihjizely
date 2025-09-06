@@ -37,8 +37,10 @@ services:
       context: ./Ihjizely_Admin
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://ihjezly.com/api}
+        VITE_API_URL: ${VITE_API_URL:-https://ihjezly.com/api}
     container_name: ihjizely-admin
+    volumes:
+      - frontend_data:/usr/share/caddy  # Share with Caddy
     networks:
       - ihjezly-network
     restart: unless-stopped
@@ -53,6 +55,8 @@ services:
     - "443:443"
    volumes:
     - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+    - frontend_data:/usr/share/caddy  # Mount the same volume
+
     - caddy_data:/data  # This stores SSL certificates
     - caddy_config:/config  # This stores Caddy configuration
    depends_on:
@@ -66,6 +70,7 @@ volumes:
   sql_data:
   caddy_data:
   caddy_config:
+  frontend_data:  # Add this shared volume
 
 networks:
   ihjezly-network:
