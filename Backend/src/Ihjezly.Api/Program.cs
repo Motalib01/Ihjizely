@@ -22,7 +22,7 @@ namespace Ihjezly.Api
                 {
                    listenOptions.UseHttps();
                 });
-    });
+            });
             // CORS setup
             builder.Services.AddCors(options =>
             {
