@@ -8,14 +8,12 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve with Caddy
+# Stage 2: Serve with Caddy on port 3000
 FROM caddy:2-alpine
 WORKDIR /usr/share/caddy
 
 # Copy built files from build stage
 COPY --from=build /app/dist ./
 
-# Copy custom Caddy configuration if needed
-# COPY Caddyfile /etc/caddy/Caddyfile
-
-EXPOSE 80
+# Change Caddy to listen on port 3000
+EXPOSE 3000

@@ -1,23 +1,19 @@
-# Temporary configuration for testing
 :80 {
     encode gzip
 
     # API requests
     handle /api/* {
-        reverse_proxy api:5050 {  # Use HTTP instead of HTTPS internally
+        reverse_proxy api:5050 {
             header_up Host {host}
             header_up X-Real-IP {remote}
-            header_up X-Forwarded-For {remote}
-            header_up X-Forwarded-Proto {scheme}
         }
     }
 
-    # All other requests go to frontend
+    # All other requests go to frontend on port 3000
     handle {
-        reverse_proxy frontend:80
+        reverse_proxy frontend:3000
     }
 
-    # Security headers
     header {
         X-Frame-Options "DENY"
         X-Content-Type-Options "nosniff"
