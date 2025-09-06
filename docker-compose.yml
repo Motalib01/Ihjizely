@@ -36,17 +36,17 @@ services:
 
   # Frontend (unchanged)
   frontend:
-    build:
-      context: ./Ihjizely_Admin
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL:-https://ihjezly.com:5051/api}
-    container_name: ihjizely-admin
-    volumes:
-      - frontend_data:/usr/share/caddy
-    networks:
-      - ihjezly-network
-    restart: unless-stopped
+   build:
+    context: ./Ihjizely_Admin
+    dockerfile: Dockerfile
+    args:
+      VITE_API_URL: ${VITE_API_URL:-https://ihjezly.com:5051/api}
+   container_name: ihjizely-admin
+   ports:
+    - "5173:80"  # Map host port 5173 to container port 80
+   networks:
+    - ihjezly-network
+   restart: unless-stopped
 
   # Caddy Reverse Proxy - updated for better HTTPS handling
   caddy:

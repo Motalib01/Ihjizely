@@ -12,31 +12,23 @@ ihjezly.com, www.ihjezly.com {
     }
     redir @http https://{host}{uri} permanent
 
-    # API requests - use HTTPS to backend
+    # API requests
     handle /api/* {
         reverse_proxy https://api:5051 {
             header_up Host {host}
             header_up X-Real-IP {remote}
             header_up X-Forwarded-For {remote}
             header_up X-Forwarded-Proto {scheme}
-            header_up X-Forwarded-Port 443
             transport http {
                 tls
-                tls_insecure_skip_verify  # Only if using self-signed certs internally
+                tls_insecure_skip_verify
             }
         }
     }
 
-    # Admin frontend
-    handle /admin* {
-        reverse_proxy frontend:5173
-    }
-
-    # Serve static files for SPA
+    # All other requests go to frontend
     handle {
-        root * /usr/share/caddy
-        file_server
-        try_files {path} {path}/ /index.html
+        reverse_proxy frontend:80
     }
 
     # Security headers
@@ -45,6 +37,5 @@ ihjezly.com, www.ihjezly.com {
         X-Content-Type-Options "nosniff"
         Referrer-Policy "strict-origin-when-cross-origin"
         Strict-Transport-Security "max-age=31536000; includeSubDomains"
-        Content-Security-Policy "default-src 'self' https:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:;"
     }
 }
