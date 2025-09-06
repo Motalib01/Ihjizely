@@ -1,28 +1,14 @@
-ihjezly.com, www.ihjezly.com {
+# Temporary configuration for testing
+:80 {
     encode gzip
-
-    # Handle ACME challenge for SSL certificates
-    tls {
-        on_demand
-    }
-
-    # Redirect HTTP to HTTPS
-    @http {
-        protocol http
-    }
-    redir @http https://{host}{uri} permanent
 
     # API requests
     handle /api/* {
-        reverse_proxy https://api:5051 {
+        reverse_proxy api:5050 {  # Use HTTP instead of HTTPS internally
             header_up Host {host}
             header_up X-Real-IP {remote}
             header_up X-Forwarded-For {remote}
             header_up X-Forwarded-Proto {scheme}
-            transport http {
-                tls
-                tls_insecure_skip_verify
-            }
         }
     }
 
@@ -36,6 +22,5 @@ ihjezly.com, www.ihjezly.com {
         X-Frame-Options "DENY"
         X-Content-Type-Options "nosniff"
         Referrer-Policy "strict-origin-when-cross-origin"
-        Strict-Transport-Security "max-age=31536000; includeSubDomains"
     }
 }

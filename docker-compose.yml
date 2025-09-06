@@ -1,7 +1,7 @@
 version: '3.9'
 
 services:
-  # Database (unchanged)
+  # Database
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: ihjezly-db
@@ -14,50 +14,42 @@ services:
       - ihjezly-network
     restart: unless-stopped
 
-  # Backend API with HTTPS support
+  # Backend API
   api:
     build:
       context: ./Backend
       dockerfile: Dockerfile
     container_name: ihjezly-api
-    ports:
-      - "5050:5050"   # HTTP (optional, for internal use)
-      - "5051:5051"   # HTTPS
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=db;Database=IhjezlyDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;Encrypt=False;
     volumes:
-      - ./certs:/https  # Mount certificates directory
+      - ./certs:/https
     depends_on:
       - db
     networks:
       - ihjezly-network
     restart: unless-stopped
 
-  # Frontend (unchanged)
+  # Frontend - REMOVED PORT MAPPING
   frontend:
-   build:
-    context: ./Ihjizely_Admin
-    dockerfile: Dockerfile
-    args:
-      VITE_API_URL: ${VITE_API_URL:-https://ihjezly.com:5051/api}
-   container_name: ihjizely-admin
-   ports:
-    - "5173:80"  # Map host port 5173 to container port 80
-   networks:
-    - ihjezly-network
-   restart: unless-stopped
+    build:
+      context: ./Ihjizely_Admin
+      dockerfile: Dockerfile
+    container_name: ihjizely-admin
+    networks:
+      - ihjezly-network
+    restart: unless-stopped
 
-  # Caddy Reverse Proxy - updated for better HTTPS handling
+  # Caddy Reverse Proxy
   caddy:
     image: caddy:2-alpine
     container_name: ihjezly-caddy
     ports:
-      - "80:80"    # HTTP
-      - "443:443"  # HTTPS
+      - "80:80"
+      - "443:443"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-      - frontend_data:/usr/share/caddy
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
@@ -71,7 +63,6 @@ volumes:
   sql_data:
   caddy_data:
   caddy_config:
-  frontend_data:
 
 networks:
   ihjezly-network:
