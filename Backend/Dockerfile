@@ -10,11 +10,19 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Use port 5050 and make it accessible outside the container
+# Install certificates for HTTPS
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Use ports 5050 (HTTP) and 5051 (HTTPS)
 EXPOSE 5050 5051
+
+# Environment variables
 ENV ASPNETCORE_URLS=http://+:5050;https://+:5051
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV ASPNETCORE_Kestrel__Certificates__Default__Password=YourCertificatePassword
+ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+
+# Create directory for certificates
+RUN mkdir /https
 
 ENTRYPOINT ["dotnet", "Ihjezly.Api.dll"]
-
-

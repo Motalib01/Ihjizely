@@ -14,6 +14,15 @@ namespace Ihjezly.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Add this configuration for HTTPS
+            builder.WebHost.ConfigureKestrel(serverOptions =>
+            {
+                serverOptions.ListenAnyIP(5050); // HTTP
+                serverOptions.ListenAnyIP(5051, listenOptions => // HTTPS
+                {
+                   listenOptions.UseHttps();
+                });
+    });
             // CORS setup
             builder.Services.AddCors(options =>
             {

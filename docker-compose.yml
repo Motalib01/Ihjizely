@@ -1,7 +1,7 @@
 version: '3.9'
 
 services:
-  # Database
+  # Database (unchanged)
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: ihjezly-db
@@ -14,24 +14,28 @@ services:
       - ihjezly-network
     restart: unless-stopped
 
-  # Backend API
+  # Backend API with HTTPS support
   api:
     build:
       context: ./Backend
       dockerfile: Dockerfile
     container_name: ihjezly-api
     ports:
-      - "5050:5050"
+      - "5050:5050"   # HTTP (optional, for internal use)
+      - "5051:5051"   # HTTPS
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=db;Database=IhjezlyDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;Encrypt=False;
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=YourCertificatePassword
+    volumes:
+      - ./certs:/https  # Mount certificates directory
     depends_on:
       - db
     networks:
       - ihjezly-network
     restart: unless-stopped
 
-  # Frontend (Production build served by Caddy)
+  # Frontend (unchanged)
   frontend:
     build:
       context: ./Ihjizely_Admin
@@ -40,37 +44,35 @@ services:
         VITE_API_URL: ${VITE_API_URL:-https://ihjezly.com/api}
     container_name: ihjizely-admin
     volumes:
-      - frontend_data:/usr/share/caddy  # Share with Caddy
+      - frontend_data:/usr/share/caddy
     networks:
       - ihjezly-network
     restart: unless-stopped
 
-
-  # Caddy Reverse Proxy
+  # Caddy Reverse Proxy - updated for better HTTPS handling
   caddy:
-   image: caddy:2-alpine
-   container_name: ihjezly-caddy
-   ports:
-    - "80:80"
-    - "443:443"
-   volumes:
-    - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-    - frontend_data:/usr/share/caddy  # Mount the same volume
-
-    - caddy_data:/data  # This stores SSL certificates
-    - caddy_config:/config  # This stores Caddy configuration
-   depends_on:
-    - api
-    - frontend
-   networks:
-    - ihjezly-network
-   restart: unless-stopped
+    image: caddy:2-alpine
+    container_name: ihjezly-caddy
+    ports:
+      - "80:80"    # HTTP
+      - "443:443"  # HTTPS
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - frontend_data:/usr/share/caddy
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - ihjezly-network
+    restart: unless-stopped
 
 volumes:
   sql_data:
   caddy_data:
   caddy_config:
-  frontend_data:  # Add this shared volume
+  frontend_data:
 
 networks:
   ihjezly-network:
