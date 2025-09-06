@@ -1,4 +1,4 @@
-:80 {
+localhost {
     encode gzip
 
     # Serve static files from built frontend
@@ -14,9 +14,9 @@
         }
     }
 
-    header {
-        X-Frame-Options "DENY"
-        X-Content-Type-Options "nosniff"
-        Referrer-Policy "strict-origin-when-cross-origin"
-    }
+    # header {
+    #     X-Frame-Options "DENY"
+    #     X-Content-Type-Options "nosniff"
+    #     Referrer-Policy "strict-origin-when-cross-origin"
+    # }
 }

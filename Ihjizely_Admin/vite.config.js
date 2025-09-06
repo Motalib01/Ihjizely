@@ -17,6 +17,7 @@ export default defineConfig({
         ]
     },
     server: {
-        host: true // This will expose the server to your network
+        host: true, // This will expose the server to your network
+        port: 80, // You can specify a port if needed
     }
 });

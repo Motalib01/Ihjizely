@@ -31,23 +31,42 @@ services:
       - ihjezly-network
     restart: unless-stopped
 
-  # Caddy Reverse Proxy (now serves frontend files directly)
-  caddy:
-    image: caddy:2-alpine
-    container_name: ihjezly-caddy
-    ports:
-      - "80:80"
-      - "443:443"
+  # Frontend - REMOVED PORT MAPPING
+  frontend:
+    build:
+      context: ./Ihjizely_Admin
+      dockerfile: Dockerfile
+    container_name: ihjizely-admin
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-      - ./Ihjizely_Admin/dist:/usr/share/caddy  # Mount built frontend files
       - caddy_data:/data
       - caddy_config:/config
-    depends_on:
-      - api
     networks:
       - ihjezly-network
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+      - "8081:443"
     restart: unless-stopped
+
+  # Caddy Reverse Proxy
+  # caddy:
+  #   image: caddy:2-alpine
+  #   container_name: ihjezly-caddy
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+  #     - caddy_data:/data
+  #     - caddy_config:/config
+  #   depends_on:
+  #     - api
+  #     - frontend
+  #   networks:
+  #     - ihjezly-network
+  #   restart: unless-stopped
 
 volumes:
   sql_data:

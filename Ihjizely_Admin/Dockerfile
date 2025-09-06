@@ -13,7 +13,7 @@ FROM caddy:2-alpine
 WORKDIR /usr/share/caddy
 
 # Copy built files from build stage
-COPY --from=build /app/dist ./
+COPY --from=build /app/dist .
 
 # Change Caddy to listen on port 3000
 EXPOSE 3000
