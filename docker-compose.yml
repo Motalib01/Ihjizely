@@ -46,21 +46,21 @@ services:
 
   # Caddy Reverse Proxy
   caddy:
-    image: caddy:2-alpine
-    container_name: ihjezly-caddy
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - api
-      - frontend
-    networks:
-      - ihjezly-network
-    restart: unless-stopped
+   image: caddy:2-alpine
+   container_name: ihjezly-caddy
+   ports:
+    - "80:80"
+    - "443:443"
+   volumes:
+    - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+    - caddy_data:/data  # This stores SSL certificates
+    - caddy_config:/config  # This stores Caddy configuration
+   depends_on:
+    - api
+    - frontend
+   networks:
+    - ihjezly-network
+   restart: unless-stopped
 
 volumes:
   sql_data:
