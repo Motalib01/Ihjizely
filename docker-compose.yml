@@ -26,7 +26,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=db;Database=IhjezlyDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;Encrypt=False;
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=Ahmed@Host123
     volumes:
       - ./certs:/https  # Mount certificates directory
     depends_on:
