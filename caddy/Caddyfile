@@ -1,6 +1,7 @@
-# Main domain configuration - Caddy will automatically handle HTTPS
 ihjezly.com, www.ihjezly.com {
-    # Handle API requests
+    encode gzip
+
+    # API requests
     handle /api/* {
         reverse_proxy api:5050 {
             header_up Host {host}
@@ -9,19 +10,24 @@ ihjezly.com, www.ihjezly.com {
             header_up X-Forwarded-Proto {scheme}
         }
     }
-    
-    # Serve static files from frontend with SPA support
+
+    # Admin frontend (if you want it served separately)
+    handle /admin* {
+        reverse_proxy frontend:5173
+    }
+
+    # Serve static files for SPA
     handle {
         root * /usr/share/caddy
         file_server
         try_files {path} {path}/ /index.html
     }
-    
+
     # Security headers
     header {
-        X-Frame-Options DENY
-        X-Content-Type-Options nosniff
-        Referrer-Policy strict-origin-when-cross-origin
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
         Strict-Transport-Security "max-age=31536000; includeSubDomains"
     }
 }
