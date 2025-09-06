@@ -40,7 +40,7 @@ services:
       context: ./Ihjizely_Admin
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-https://ihjezly.com/api}
+        VITE_API_URL: ${VITE_API_URL:-https://ihjezly.com:5051/api}
     container_name: ihjizely-admin
     volumes:
       - frontend_data:/usr/share/caddy
