@@ -1,13 +1,20 @@
+# Stage 1: Build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY . .
+RUN dotnet restore ihjezly.sln
+RUN dotnet publish src/Ihjezly.Api/Ihjezly.Api.csproj -c Release -o /app/publish
+
 # Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Expose both HTTP and HTTPS
+# Use port 5050 and make it accessible outside the container
 EXPOSE 5050 5051
-
-# Tell ASP.NET to listen on both
-ENV ASPNETCORE_URLS="http://+:5050;https://+:5051"
+ENV ASPNETCORE_URLS=http://+:5050;https://+:5051
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 ENTRYPOINT ["dotnet", "Ihjezly.Api.dll"]
+
+
