@@ -20,10 +20,9 @@ namespace Ihjezly.Api
                 options.AddPolicy("AllowAll", policy =>
                 {
                     policy
-                        .WithOrigins("http://ihjezly.com", "http://www.ihjezly.com")
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();  
+                        .AllowAnyOrigin()     
+                        .AllowAnyMethod()     
+                        .AllowAnyHeader();    
                 });
             });
 
