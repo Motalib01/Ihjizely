@@ -12,8 +12,8 @@ http://ihjezly.com, http://www.ihjezly.com {
         respond 200
     }
 
-    # API reverse proxy
-    handle_path /api/* {
+    # API reverse proxy (keep /api prefix)
+    handle /api/* {
         reverse_proxy api:5050 {
             header_down Access-Control-Allow-Origin "*"
             header_down Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
