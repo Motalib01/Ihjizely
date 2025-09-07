@@ -1,12 +1,12 @@
 http://ihjezly.com, http://www.ihjezly.com {
     encode gzip
 
-    # Serve static files from built frontend
+    # Serve React/Vue/SPA frontend
     root * /usr/share/caddy
     file_server
     try_files {path} {path}/ /index.html
 
-    # API requests
+    # API reverse proxy (to backend http://api:5050)
     handle /api/* {
         reverse_proxy api:5050 {
             header_up Host {host}

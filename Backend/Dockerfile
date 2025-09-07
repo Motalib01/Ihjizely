@@ -14,7 +14,7 @@ COPY --from=build /app/publish .
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Use ports 5050 (HTTP) and 5051 (HTTPS)
-EXPOSE 5050 5051
+EXPOSE 5050
 
 # Environment variables
 ENV ASPNETCORE_URLS=http://+:5050
