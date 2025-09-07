@@ -31,7 +31,7 @@ internal sealed class ChangePropertyStatusHandler : ICommandHandler<ChangeProper
         property.ChangeStatus(request.NewStatus);
 
         //Create notification for the business owner
-        var message = $"تم تغيير حالة عقارك '{property.Title}' إلى {request.NewStatus}.";
+        var message = $"تم تغيير حالة عقارك '{property.Title}' إلى {request.NewStatus.ToArabic()}.";
         var notification = Notification.Create(property.BusinessOwnerId, message);
         _notificationRepository.Add(notification);
 

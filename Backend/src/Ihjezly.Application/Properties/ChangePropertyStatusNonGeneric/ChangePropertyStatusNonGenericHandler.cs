@@ -32,7 +32,7 @@ internal sealed class ChangePropertyStatusNonGenericHandler : ICommandHandler<Ch
 
         var userIdToNotify = property.BusinessOwnerId; 
 
-        var notificationMessage = $"تم تغيير حالة عقارك '{property.Title}' إلى {request.NewStatus}.";
+        var notificationMessage = $"تم تغيير حالة عقارك '{property.Title}' إلى {request.NewStatus.ToArabic()}.";
 
         var notification = Notification.Create(userIdToNotify, notificationMessage);
 
