@@ -1,4 +1,5 @@
 ﻿using Ihjezly.Api.Controllers.Request;
+using Ihjezly.Application.Users.CheckPhoneNumber;
 using Ihjezly.Application.Users.DeleteUser;
 using Ihjezly.Application.Users.ForgotPassword;
 using Ihjezly.Application.Users.GetAllUsers;
@@ -158,5 +159,12 @@ public class UsersController : ControllerBase
     {
         var result = await _mediator.Send(new DeleteUserCommand(id), cancellationToken);
         return result.IsSuccess ? Ok() : NotFound(ApiError.From(result.Error));
+    }
+
+    [HttpGet("check-phone")]
+    public async Task<IActionResult> CheckPhone([FromQuery] string phoneNumber, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new CheckPhoneNumberQuery(phoneNumber), cancellationToken);
+        return Ok(new { exists = result });
     }
 }
