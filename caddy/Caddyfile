@@ -1,22 +1,29 @@
-
-
 http://ihjezly.com, http://www.ihjezly.com {
-    
     encode gzip
+    
+    # Handle API requests first
+    handle /api/* {
+        reverse_proxy api:5050 {
+            # Add CORS headers
+            header_up Access-Control-Allow-Origin *
+            header_up Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+            header_up Access-Control-Allow-Headers "*"
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+        }
+    }
+    
+    # Handle OPTIONS preflight requests
+    handle_options /api/* {
+        respond "OK" 200 {
+            header Access-Control-Allow-Origin *
+            header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+            header Access-Control-Allow-Headers "*"
+        }
+    }
 
     # Serve React/Vue/SPA frontend
     root * /usr/share/caddy
     file_server
     try_files {path} {path}/ /index.html
-
-    # API reverse proxy (to backend http://api:5050)
-   handle /api/* {
-    uri strip_prefix /api
-    reverse_proxy api:5050 {
-        header_up Host {host}
-        header_up X-Real-IP {remote}
-    }
-}
-
-
 }
