@@ -17,7 +17,4 @@ EXPOSE 5050
 ENV ASPNETCORE_URLS=http://+:5050
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-# Create directory for certificates
-RUN mkdir /https
-
 ENTRYPOINT ["dotnet", "Ihjezly.Api.dll"]
