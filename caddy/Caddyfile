@@ -1,24 +1,32 @@
-http://ihjezly.com, http://www.ihjezly.com {
-    encode gzip
-    
-    # Handle API requests first
+# Caddyfile at project root
+http://localhost, http://ihjezly.com, http://www.ihjezly.com {
+    # Handle OPTIONS preflight requests for CORS
+    @options {
+        method OPTIONS
+        path /api/*
+    }
+    handle @options {
+        header Access-Control-Allow-Origin "*"
+        header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        header Access-Control-Allow-Headers "*"
+        header Access-Control-Allow-Credentials "true"
+        respond 200
+    }
+
+    # API reverse proxy
     handle /api/* {
         reverse_proxy api:5050 {
-            # Add CORS headers
-            header_up Access-Control-Allow-Origin *
-            header_up Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-            header_up Access-Control-Allow-Headers "*"
+            # Add CORS headers for responses
+            header_down Access-Control-Allow-Origin "*"
+            header_down Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+            header_down Access-Control-Allow-Headers "*"
+            header_down Access-Control-Allow-Credentials "true"
+            
+            # Forward original headers
             header_up Host {host}
             header_up X-Real-IP {remote}
-        }
-    }
-    
-    # Handle OPTIONS preflight requests
-    handle_options /api/* {
-        respond "OK" 200 {
-            header Access-Control-Allow-Origin *
-            header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-            header Access-Control-Allow-Headers "*"
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
         }
     }
 
@@ -26,4 +34,6 @@ http://ihjezly.com, http://www.ihjezly.com {
     root * /usr/share/caddy
     file_server
     try_files {path} {path}/ /index.html
+    
+    encode gzip
 }

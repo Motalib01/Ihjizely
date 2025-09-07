@@ -22,7 +22,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=db;Database=IhjezlyDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;Encrypt=False;
-      - ASPNETCORE_URLS=http://+:5050
     depends_on:
       - db
     networks:
@@ -36,7 +35,7 @@ services:
       dockerfile: Dockerfile
     container_name: ihjizely-admin
     volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./Caddyfile:/etc/caddy/Caddyfile  # Mount from project root
       - caddy_data:/data
       - caddy_config:/config
     networks:
