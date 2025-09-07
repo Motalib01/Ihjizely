@@ -1,5 +1,5 @@
 # Caddyfile at project root
-http://localhost, http://ihjezly.com, http://www.ihjezly.com {
+http://localhost, http://ihjezly.com, http://www.ihjezly.com, http://168.231.124.185 {
     # Handle OPTIONS preflight requests for CORS
     @options {
         method OPTIONS
@@ -25,8 +25,6 @@ http://localhost, http://ihjezly.com, http://www.ihjezly.com {
             # Forward original headers
             header_up Host {host}
             header_up X-Real-IP {remote}
-            header_up X-Forwarded-For {remote}
-            header_up X-Forwarded-Proto {scheme}
         }
     }
 
