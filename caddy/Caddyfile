@@ -1,8 +1,6 @@
-http://www.ihjezly.com {
-    redir http://ihjezly.com{uri}
-}
 
-http://ihjezly.com{
+
+http://ihjezly.com, http://www.ihjezly.com {
     
     encode gzip
 
