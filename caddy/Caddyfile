@@ -10,12 +10,13 @@ http://ihjezly.com, http://www.ihjezly.com {
     try_files {path} {path}/ /index.html
 
     # API reverse proxy (to backend http://api:5050)
-    handle /api/* {
-    rewrite * {path}
+   handle /api/* {
+    uri strip_prefix /api
     reverse_proxy api:5050 {
         header_up Host {host}
         header_up X-Real-IP {remote}
     }
 }
+
 
 }
