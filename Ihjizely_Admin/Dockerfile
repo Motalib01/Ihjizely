@@ -16,7 +16,7 @@ WORKDIR /usr/share/caddy
 COPY --from=build /app/dist .
 
 # Copy custom Caddyfile
-COPY ./Caddyfile /etc/caddy/Caddyfile
+# COPY ./Caddyfile /etc/caddy/Caddyfile
 
 # Expose standard HTTP ports
 EXPOSE 80
