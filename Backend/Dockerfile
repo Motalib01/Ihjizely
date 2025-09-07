@@ -10,10 +10,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Install certificates for HTTPS
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
-# Use ports 5050 (HTTP) and 5051 (HTTPS)
+# Use ports 5050 (HTTP) 
 EXPOSE 5050
 
 # Environment variables

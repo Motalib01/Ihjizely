@@ -1,4 +1,9 @@
-http://ihjezly.com, http://www.ihjezly.com {
+http://www.ihjezly.com {
+    redir http://ihjezly.com{uri}
+}
+
+http://ihjezly.com{
+    
     encode gzip
 
     # Serve React/Vue/SPA frontend
