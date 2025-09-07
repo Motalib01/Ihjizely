@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 EXPOSE 5050 5051
 
 # Environment variables
-ENV ASPNETCORE_URLS=http://+:5050;https://+:5051
+ENV ASPNETCORE_URLS=http://+:5050
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 # Create directory for certificates

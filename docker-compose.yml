@@ -27,6 +27,8 @@ services:
       - ./certs:/https
     depends_on:
       - db
+    ports:
+      - "5050:5050"
     networks:
       - ihjezly-network
     restart: unless-stopped
@@ -49,24 +51,6 @@ services:
       - "8080:80"
       - "8081:443"
     restart: unless-stopped
-
-  # Caddy Reverse Proxy
-  # caddy:
-  #   image: caddy:2-alpine
-  #   container_name: ihjezly-caddy
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-  #     - caddy_data:/data
-  #     - caddy_config:/config
-  #   depends_on:
-  #     - api
-  #     - frontend
-  #   networks:
-  #     - ihjezly-network
-  #   restart: unless-stopped
 
 volumes:
   sql_data:

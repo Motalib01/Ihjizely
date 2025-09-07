@@ -13,10 +13,4 @@ localhost {
             header_up X-Real-IP {remote}
         }
     }
-
-    # header {
-    #     X-Frame-Options "DENY"
-    #     X-Content-Type-Options "nosniff"
-    #     Referrer-Policy "strict-origin-when-cross-origin"
-    # }
 }
