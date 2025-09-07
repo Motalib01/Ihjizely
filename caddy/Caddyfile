@@ -1,4 +1,4 @@
-localhost {
+http://ihjezly.com, http://www.ihjezly.com {
     encode gzip
 
     # Serve static files from built frontend
