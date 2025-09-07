@@ -11,9 +11,11 @@ http://ihjezly.com, http://www.ihjezly.com {
 
     # API reverse proxy (to backend http://api:5050)
     handle /api/* {
-        reverse_proxy api:5050 {
-            header_up Host {host}
-            header_up X-Real-IP {remote}
-        }
+    rewrite * {path}
+    reverse_proxy api:5050 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
     }
+}
+
 }
