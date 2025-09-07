@@ -1,6 +1,5 @@
-# Caddyfile at project root
- http://ihjezly.com, http://www.ihjezly.com {
-    # Handle OPTIONS preflight requests for CORS
+http://ihjezly.com, http://www.ihjezly.com {
+    # Handle CORS preflight
     @options {
         method OPTIONS
         path /api/*
@@ -14,24 +13,21 @@
     }
 
     # API reverse proxy
-    handle /api/* {
+    handle_path /api/* {
         reverse_proxy api:5050 {
-            # Add CORS headers for responses
             header_down Access-Control-Allow-Origin "*"
             header_down Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
             header_down Access-Control-Allow-Headers "*"
             header_down Access-Control-Allow-Credentials "true"
-            
-            # Forward original headers
-            # header_up Host {host}
-            # header_up X-Real-IP {remote}
         }
     }
 
-    # Serve React/Vue/SPA frontend
-    root * /usr/share/caddy
-    file_server
-    try_files {path} {path}/ /index.html
-    
+    # SPA frontend (catch-all fallback)
+    handle {
+        root * /usr/share/caddy
+        file_server
+        try_files {path} {path}/ /index.html
+    }
+
     encode gzip
 }
