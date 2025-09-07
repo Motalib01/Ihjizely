@@ -1,5 +1,5 @@
 # Caddyfile at project root
-http://localhost, http://ihjezly.com, http://www.ihjezly.com, http://168.231.124.185 {
+ http://ihjezly.com, http://www.ihjezly.com {
     # Handle OPTIONS preflight requests for CORS
     @options {
         method OPTIONS
