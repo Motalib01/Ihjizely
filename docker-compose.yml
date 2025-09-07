@@ -48,8 +48,8 @@ services:
     depends_on:
       - api
     ports:
-      - "8080:80"
-      - "8081:443"
+      - "80:80"
+      - "443:443"
     restart: unless-stopped
 
 volumes:
