@@ -92,7 +92,7 @@ namespace Ihjezly.Api
 
             app.UseCors("AllowAll");
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
 
             app.UseAuthentication();
