@@ -24,6 +24,8 @@ services:
       - ConnectionStrings__DefaultConnection=Server=db;Database=IhjezlyDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;Encrypt=False;
     depends_on:
       - db
+    ports:
+      - "5050:5050"
     networks:
       - ihjezly-network
     restart: unless-stopped

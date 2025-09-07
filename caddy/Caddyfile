@@ -23,8 +23,8 @@
             header_down Access-Control-Allow-Credentials "true"
             
             # Forward original headers
-            header_up Host {host}
-            header_up X-Real-IP {remote}
+            # header_up Host {host}
+            # header_up X-Real-IP {remote}
         }
     }
 
