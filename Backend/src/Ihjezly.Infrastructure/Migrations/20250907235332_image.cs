@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Ihjezly.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class start : Migration
+    public partial class image : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -84,6 +84,7 @@ namespace Ihjezly.Infrastructure.Migrations
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<int>(type: "int", nullable: false),
                     UserProfilePicture_Url = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserProfilePicture_IsMain = table.Column<bool>(type: "bit", nullable: false),
                     IsVerified = table.Column<bool>(type: "bit", nullable: false),
                     ViolationCount = table.Column<int>(type: "int", nullable: false),
                     IsBlocked = table.Column<bool>(type: "bit", nullable: false),
@@ -266,7 +267,8 @@ namespace Ihjezly.Infrastructure.Migrations
                 columns: table => new
                 {
                     ImageUrl = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PropertyId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    PropertyId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    IsMain = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

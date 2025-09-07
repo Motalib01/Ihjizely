@@ -76,6 +76,10 @@ public abstract class Property : Entity
         if (_images.Any(img => img.Url == image.Url))
             throw new InvalidOperationException("Image already exists.");
 
+        
+        if (_images.Count == 0)
+            image = image with { IsMain = true };
+
         _images.Add(image);
         UpdatedAt = DateTime.UtcNow;
     }
@@ -87,6 +91,13 @@ public abstract class Property : Entity
             throw new InvalidOperationException("Image not found.");
 
         _images.Remove(image);
+
+        if (image.IsMain && _images.Any())
+        {
+            var first = _images[0];
+            _images[0] = first with { IsMain = true };
+        }
+
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -99,10 +110,19 @@ public abstract class Property : Entity
     public void SetImages(IEnumerable<Image> images)
     {
         _images.Clear();
-        _images.AddRange(images);
+
+        var list = images.ToList();
+        if (list.Any())
+        {
+            
+            list[0] = list[0] with { IsMain = true };
+        }
+
+        _images.AddRange(list);
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public Image MainImage => _images.FirstOrDefault(img => img.IsMain) ?? Image.Default;
     public void ChangeType(PropertyType newType)
     {
         Type = newType;

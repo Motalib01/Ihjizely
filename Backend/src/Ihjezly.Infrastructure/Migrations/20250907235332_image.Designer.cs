@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ihjezly.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250902195022_start")]
-    partial class start
+    [Migration("20250907235332_image")]
+    partial class image
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -620,6 +620,9 @@ namespace Ihjezly.Infrastructure.Migrations
                                 .HasColumnType("nvarchar(450)")
                                 .HasColumnName("ImageUrl");
 
+                            b1.Property<bool>("IsMain")
+                                .HasColumnType("bit");
+
                             b1.HasKey("PropertyId", "Url");
 
                             b1.ToTable("PropertyImages", (string)null);
@@ -826,6 +829,9 @@ namespace Ihjezly.Infrastructure.Migrations
                         {
                             b1.Property<Guid>("UserId")
                                 .HasColumnType("uniqueidentifier");
+
+                            b1.Property<bool>("IsMain")
+                                .HasColumnType("bit");
 
                             b1.Property<string>("Url")
                                 .IsRequired()
