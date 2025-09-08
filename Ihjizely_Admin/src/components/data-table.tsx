@@ -1655,10 +1655,10 @@ const handleRecharge = async () => {
     {/* Wrap SelectContent in Portal */}
     <Portal>
       <SelectContent className="z-[1001] bg-white border border-gray-200 rounded-md shadow-lg mt-1">
-        <SelectItem value="Adfali">Adfali</SelectItem>
-        <SelectItem value="PayPal">PayPal</SelectItem>
-        <SelectItem value="Stripe">Stripe</SelectItem>
-        <SelectItem value="Masarat">Masarat</SelectItem>
+        {/* <SelectItem value="Adfali" disabled>Adfali</SelectItem> */}
+        <SelectItem value="PayPal">Cash</SelectItem>
+        {/* <SelectItem value="Stripe" disabled>Stripe</SelectItem> */}
+        {/* <SelectItem value="Masarat" disabled>Masarat</SelectItem> */}
       </SelectContent>
     </Portal>
   </Select>
