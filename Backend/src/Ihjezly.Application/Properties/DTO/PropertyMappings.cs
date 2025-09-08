@@ -29,7 +29,7 @@ public static class PropertyMappings
 
     // ===== Image =====
     public static ImageDto ToDto(this Image image) =>
-        new(image.Url);
+        new(image.Url, image.IsMain);
 
     // ===== Generic PropertyWithDetails<T> Mapping =====
     public static PropertyDto ToDto<TDetails>(this PropertyWithDetails<TDetails> property, string businessOwnerFirstName, string businessOwnerLastName)
