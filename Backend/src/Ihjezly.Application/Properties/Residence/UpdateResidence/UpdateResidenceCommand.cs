@@ -17,7 +17,7 @@ public sealed record UpdateResidenceCommand<TProperty, TDetails>(
     TDetails Details,
     Discount? Discount,
     ViedeoUrl? VideoUrl,
-    List<string>? ImagesToAdd = null,
+    List<Image>? ImagesToAdd = null,
     List<string>? ImagesToRemove = null,
     List<DateTime>? Unavailables = null,
     List<Facility>? Facilities = null
@@ -78,8 +78,8 @@ internal sealed class UpdateResidenceCommandHandler<TProperty, TDetails>
 
         if (request.ImagesToAdd is not null)
         {
-            foreach (var url in request.ImagesToAdd)
-                property.AddImage(new Image(url));
+            foreach (var image in request.ImagesToAdd)
+                property.AddImage(image);
         }
 
         // === Notification ===
@@ -112,7 +112,7 @@ public class UpdateResidencePropertyRequest<TProperty, TDetails>
     public List<IFormFile>? Images { get; set; }
     public List<string>? ImagesToRemove { get; set; }
 
-    public UpdateResidenceCommand<TProperty, TDetails> ToCommand(Guid id, List<string>? uploadedImageUrls = null)
+    public UpdateResidenceCommand<TProperty, TDetails> ToCommand(Guid id, List<Image>? uploadedImageUrls = null)
         => new(
             Id: id,
             Title: Title,

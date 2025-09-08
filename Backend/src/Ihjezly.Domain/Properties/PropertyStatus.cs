@@ -14,8 +14,8 @@ public static class PropertyStatusExtensions
         return status switch
         {
             PropertyStatus.Pending => "قيد الانتظار",
-            PropertyStatus.Accepted => "مقبول",
-            PropertyStatus.Refused => "مرفوض",
+            PropertyStatus.Accepted => "قبول",
+            PropertyStatus.Refused => "رفض",
             _ => status.ToString()
         };
     }

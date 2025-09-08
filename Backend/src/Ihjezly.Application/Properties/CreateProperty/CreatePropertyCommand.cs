@@ -16,7 +16,7 @@ public sealed record CreatePropertyCommand<TProperty, TDetails>(
     PropertyType Type,
     Guid BusinessOwnerId,
     bool IsAd,
-    List<string>? Images,
+    List<Image>? Images,
     DiscountDto? Discount,
     List<DateTime> Unavailables,
     List<Facility>? Facilities

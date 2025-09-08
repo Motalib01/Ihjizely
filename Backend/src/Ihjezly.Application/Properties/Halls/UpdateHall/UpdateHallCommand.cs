@@ -15,7 +15,7 @@ public sealed record UpdateHallCommand<TProperty, TDetails>(
     TDetails? Details,
     Discount? Discount,
     ViedeoUrl? VideoUrl,
-    List<string>? ImagesToAdd = null,
+    List<Image>? ImagesToAdd = null,
     List<string>? ImagesToRemove = null,
     List<DateTime>? Unavailbles = null
 ) : IRequest<Result<Guid>>
@@ -64,9 +64,9 @@ internal sealed class UpdateHallCommandHandler<TProperty, TDetails>
                     property.RemoveImage(url);
 
             // Add images
-            if (request.ImagesToAdd != null)
+            if (request.ImagesToAdd is not null)
                 foreach (var url in request.ImagesToAdd)
-                    property.AddImage(new Image(url));
+                    property.AddImage(url);
 
             // Optional: create a notification
             var notification = Notification.Create(
@@ -99,7 +99,7 @@ public class UpdateHallPropertyRequest<TProperty, TDetails>
     public List<IFormFile>? Images { get; set; }
     public List<string>? ImagesToRemove { get; set; }
 
-    public UpdateHallCommand<TProperty, TDetails> ToCommand(Guid id, List<string>? uploadedImageUrls = null)
+    public UpdateHallCommand<TProperty, TDetails> ToCommand(Guid id, List<Image>? uploadedImageUrls = null)
         => new(
             Id: id,
             Title: Title,

@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Claims;
 using Ihjezly.Application.Properties.Residence.UpdateResidence;
+using Ihjezly.Domain.Shared;
 
 
 namespace Ihjezly.Api.Controllers.Base;
@@ -51,7 +52,9 @@ public abstract class ResidencePropertyControllerBase<TProperty, TDetails> : Con
             if (uploadResult.IsFailure)
                 return BadRequest(uploadResult.Error);
 
-            request.Images = uploadResult.Value;
+            request.Images = uploadResult.Value
+                .Select((url, index) => Image.Create(url, index == 0))
+                .ToList();
         }
 
         var result = await _mediator.Send(request.ToCommand());
@@ -72,7 +75,7 @@ public abstract class ResidencePropertyControllerBase<TProperty, TDetails> : Con
         [FromForm] UpdateResidencePropertyRequest<TProperty, TDetails> request,
         CancellationToken cancellationToken)
     {
-        var uploadedImageUrls = new List<string>();
+        var uploadedImages = new List<Image>();
 
         if (request.Images is not null && request.Images.Any())
         {
@@ -80,11 +83,14 @@ public abstract class ResidencePropertyControllerBase<TProperty, TDetails> : Con
             if (uploadResult.IsFailure)
                 return BadRequest(uploadResult.Error);
 
-            uploadedImageUrls.AddRange(uploadResult.Value);
+            uploadedImages = uploadResult.Value
+                .Select((url, index) => Image.Create(url, index == 0)) 
+                .ToList();
         }
 
-        var command = request.ToCommand(id, uploadedImageUrls);
+        var command = request.ToCommand(id, uploadedImages);
         var result = await _mediator.Send(command, cancellationToken);
+
 
         return result.IsSuccess ? NoContent() : BadRequest(result.Error);
     }

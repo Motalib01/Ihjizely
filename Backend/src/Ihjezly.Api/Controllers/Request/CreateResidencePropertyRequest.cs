@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using Ihjezly.Application.Properties.DTO;
 using Ihjezly.Domain.Properties;
+using Ihjezly.Domain.Shared;
 
 namespace Ihjezly.Api.Controllers.Request;
 
@@ -24,7 +25,7 @@ public class CreateResidencePropertyRequest<TProperty, TDetails>
     public Guid BusinessOwnerId { get; set; }
 
     [JsonIgnore]
-    public List<string>? Images { get; set; }
+    public List<Image>? Images { get; set; }
 
     public CreateResidencePropertyCommand<TProperty, TDetails> ToCommand()
     {

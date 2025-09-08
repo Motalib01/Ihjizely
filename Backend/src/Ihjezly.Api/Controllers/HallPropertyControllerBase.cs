@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Claims;
 using Ihjezly.Application.Properties.Halls.GetHallPropertyById;
 using Ihjezly.Api.Controllers.Request;
+using Ihjezly.Domain.Shared;
 
 namespace Ihjezly.Api.Controllers.Base;
 
@@ -45,7 +46,9 @@ public abstract class HallPropertyControllerBase<TProperty, TDetails> : Controll
             if (uploadResult.IsFailure)
                 return BadRequest(uploadResult.Error);
 
-            request.Images = uploadResult.Value;
+            request.Images = uploadResult.Value
+                .Select((url, index) => Image.Create(url, index == 0))
+                .ToList();
         }
 
         var result = await _mediator.Send(request.ToCommand());
@@ -66,17 +69,17 @@ public abstract class HallPropertyControllerBase<TProperty, TDetails> : Controll
         [FromForm] UpdateHallPropertyRequest<TProperty, TDetails> request,
         CancellationToken cancellationToken)
     {
-        var uploadedImageUrls = new List<string>();
+        var uploadedImageUrls = new List<Image>();
 
-        // Upload new images
         if (request.Images is not null && request.Images.Any())
         {
             var uploadResult = await _mediator.Send(new UploadFileCommand(request.Images, "properties"), cancellationToken);
-
             if (uploadResult.IsFailure)
                 return BadRequest(uploadResult.Error);
 
-            uploadedImageUrls.AddRange(uploadResult.Value);
+            uploadedImageUrls = uploadResult.Value
+                .Select((url, index) => Image.Create(url, index == 0))
+                .ToList();
         }
 
         // Map DTO to command

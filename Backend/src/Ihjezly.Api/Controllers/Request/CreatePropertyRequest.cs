@@ -2,6 +2,7 @@
 using Ihjezly.Application.Properties;
 using Ihjezly.Application.Properties.DTO;
 using Ihjezly.Domain.Properties;
+using Ihjezly.Domain.Shared;
 
 namespace Ihjezly.Api.Controllers.Request;
 
@@ -27,7 +28,7 @@ public class CreatePropertyRequest<TProperty, TDetails>
     public Guid BusinessOwnerId { get; set; }
 
     [JsonIgnore]
-    public List<string>? Images { get; set; }
+    public List<Image>? Images { get; set; }
 
     public CreatePropertyCommand<TProperty, TDetails> ToCommand()
     {

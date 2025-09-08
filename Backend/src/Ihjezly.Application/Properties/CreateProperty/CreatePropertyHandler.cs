@@ -71,11 +71,11 @@ internal sealed class CreatePropertyHandler<TProperty, TDetails>
 
         if (request.Images is not null)
         {
-            foreach (var imageUrl in request.Images)
+            foreach (var image in request.Images)
             {
                 try
                 {
-                    property.AddImage(Image.Create(imageUrl));
+                    property.AddImage(image);
                 }
                 catch (ArgumentException)
                 {
@@ -83,6 +83,7 @@ internal sealed class CreatePropertyHandler<TProperty, TDetails>
                 }
             }
         }
+
 
         _repository.Add(property);
 

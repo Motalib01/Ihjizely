@@ -1,6 +1,7 @@
 ﻿using Ihjezly.Application.Abstractions.Messaging;
 using Ihjezly.Application.Properties.DTO;
 using Ihjezly.Domain.Properties;
+using Ihjezly.Domain.Shared;
 
 public sealed record CreateHallPropertyCommand<THall, TDetails>(
     string Title,
@@ -13,7 +14,7 @@ public sealed record CreateHallPropertyCommand<THall, TDetails>(
     Guid BusinessOwnerId,
     bool IsAd,
     ViedeoUrl ViedeoUrl,
-    List<string>? Images,
+    List<Image>? Images,
     DiscountDto? Discount,
     List<DateTime> Unavailables
 ) : ICommand<Guid>

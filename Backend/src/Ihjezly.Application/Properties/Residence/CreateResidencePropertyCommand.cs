@@ -1,6 +1,7 @@
 ﻿using Ihjezly.Application.Abstractions.Messaging;
 using Ihjezly.Application.Properties.DTO;
 using Ihjezly.Domain.Properties;
+using Ihjezly.Domain.Shared;
 
 public sealed record CreateResidencePropertyCommand<TResidence, TDetails>(
     string Title,
@@ -13,7 +14,7 @@ public sealed record CreateResidencePropertyCommand<TResidence, TDetails>(
     PropertyType Type,
     Guid BusinessOwnerId,
     bool IsAd,
-    List<string>? Images,
+    List<Image>? Images,
     DiscountDto? Discount,
     List<DateTime> Unavailables,
     List<Facility>? Facilities
