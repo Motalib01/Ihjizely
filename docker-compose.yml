@@ -28,6 +28,8 @@ services:
     networks:
       - ihjezly-network
     restart: unless-stopped
+    volumes:
+      - ./uploads:/app/wwwroot/uploads
 
   # Frontend with Caddy
   frontend:
