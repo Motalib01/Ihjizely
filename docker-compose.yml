@@ -1,5 +1,5 @@
 services:
-  # Database Service
+  # Database Service - SQL Server
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: ihjezly-db
