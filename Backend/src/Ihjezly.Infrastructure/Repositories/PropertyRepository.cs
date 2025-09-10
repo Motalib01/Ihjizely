@@ -142,5 +142,8 @@ internal sealed class PropertyRepository<TProperty> : IPropertyRepository<TPrope
         return properties;
     }
 
-
+    public void Update(Property property)
+    {
+        _dbContext.Properties.Update(property);
+    }
 }

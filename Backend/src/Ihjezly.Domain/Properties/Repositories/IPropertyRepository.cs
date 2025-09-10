@@ -8,6 +8,7 @@ public interface IPropertyRepository<TProperty> where TProperty : Property
     Task<List<TProperty>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<TProperty?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     void Add(TProperty property);
+    
     Task<List<TProperty>> GetByStatusAsync(PropertyStatus status, CancellationToken cancellationToken = default);
     Task DeleteAsync(TProperty property);
 
@@ -22,7 +23,7 @@ public interface IPropertyRepository
     Task<List<Property>> GetAllAcceptedNonGenericAsync(CancellationToken cancellationToken = default);
     Task<List<Property>> GetByBusinessOwnerIdAsync(Guid businessOwnerId, CancellationToken cancellationToken = default);
     void Remove(Property property);
-
+    void Update(Property property);
     Task<List<Property>> SearchAsync(PropertySearchRequest request, CancellationToken cancellationToken = default);
 
 

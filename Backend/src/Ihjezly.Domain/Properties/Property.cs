@@ -164,4 +164,21 @@ public abstract class Property : Entity
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void AddUnavailableRange(DateTime startDate, DateTime endDate)
+    {
+        if (Unavailbles == null)
+            Unavailbles = new List<DateTime>();
+
+        if (startDate >= endDate)
+            throw new ArgumentException("End date must be after start date.");
+
+        for (var date = startDate.Date; date <= endDate.Date; date = date.AddDays(1))
+        {
+            if (!Unavailbles.Contains(date))
+                Unavailbles.Add(date);
+        }
+
+        UpdatedAt = DateTime.UtcNow;
+    }
+
 }
