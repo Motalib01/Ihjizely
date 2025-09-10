@@ -29,7 +29,7 @@ services:
       - ihjezly-network
     restart: unless-stopped
     volumes:
-      - ./uploads:/app/wwwroot/uploads
+      - ./wwwroot/images/properties:/app/wwwroot/images/properties
 
   # Frontend with Caddy
   frontend:
