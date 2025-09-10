@@ -12,6 +12,16 @@ http://ihjezly.com, http://www.ihjezly.com, http://168.231.124.185:5050 {
         respond 200
     }
 
+    # Handle images (proxy to backend)
+    handle /images/* {
+        reverse_proxy api:5050 {
+            header_down Access-Control-Allow-Origin "*"
+            header_down Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+            header_down Access-Control-Allow-Headers "*"
+            header_down Access-Control-Allow-Credentials "true"
+        }
+    }
+
     # API reverse proxy (keep /api prefix)
     handle /api/* {
         reverse_proxy api:5050 {
