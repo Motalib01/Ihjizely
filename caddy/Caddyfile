@@ -1,4 +1,4 @@
-http://ihjezly.com, http://www.ihjezly.com, http://168.231.124.185:5050 {
+http://ihjezly.com, http://www.ihjezly.com, http://168.231.124.185 {
     # Handle CORS preflight
     @options {
         method OPTIONS
