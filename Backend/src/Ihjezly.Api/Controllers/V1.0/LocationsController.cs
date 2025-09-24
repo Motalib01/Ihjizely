@@ -1,4 +1,5 @@
-﻿using Ihjezly.Application.Properties.Location.CreateLocation;
+﻿using Asp.Versioning;
+using Ihjezly.Application.Properties.Location.CreateLocation;
 using Ihjezly.Application.Properties.Location.DeleteLocation;
 using Ihjezly.Application.Properties.Location.GetLocationById;
 using Ihjezly.Application.Properties.Location.GetSelectableLocations;
@@ -9,7 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Ihjezly.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class LocationsController : ControllerBase
 {
     private readonly ISender _mediator;

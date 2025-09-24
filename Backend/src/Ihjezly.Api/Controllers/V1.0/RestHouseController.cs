@@ -1,11 +1,14 @@
-﻿using Ihjezly.Api.Controllers.Base;
+﻿using Asp.Versioning;
+using Ihjezly.Api.Controllers.Base;
 using Ihjezly.Domain.Properties;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ihjezly.Api.Controllers;
 
-[Route("api/properties/rest-house")]
+[ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class RestHouseController : ResidencePropertyControllerBase<RestHouse, RestHouseDetails>
 {
     public RestHouseController(ISender mediator, IWebHostEnvironment environment)

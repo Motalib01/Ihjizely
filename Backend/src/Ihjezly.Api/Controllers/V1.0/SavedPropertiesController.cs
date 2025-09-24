@@ -1,4 +1,5 @@
-﻿using Ihjezly.Application.SavedProperties.GetSavedPropertiesForUser;
+﻿using Asp.Versioning;
+using Ihjezly.Application.SavedProperties.GetSavedPropertiesForUser;
 using Ihjezly.Application.SavedProperties.RemoveSavedProperty;
 using Ihjezly.Application.SavedProperties.SaveProperty;
 using Ihjezly.Domain.SavedProperties;
@@ -10,7 +11,8 @@ using System.Security.Claims;
 namespace Ihjezly.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class SavedPropertiesController : ControllerBase
 {
     private readonly ISender _mediator;

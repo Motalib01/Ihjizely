@@ -1,11 +1,14 @@
-﻿using Ihjezly.Api.Controllers.Base;
+﻿using Asp.Versioning;
+using Ihjezly.Api.Controllers.Base;
 using Ihjezly.Domain.Properties;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ihjezly.Api.Controllers;
 
-[Route("api/properties/hotel-apartment")]
+[ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class HotelApartmentController : ResidencePropertyControllerBase<HotelApartment, HotelApartmentDetails>
 {
     public HotelApartmentController(ISender mediator, IWebHostEnvironment environment)

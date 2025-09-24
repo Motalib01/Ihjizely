@@ -1,11 +1,14 @@
-﻿using Ihjezly.Api.Controllers.Base;
+﻿using Asp.Versioning;
+using Ihjezly.Api.Controllers.Base;
 using Ihjezly.Domain.Properties;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ihjezly.Api.Controllers;
 
-[Route("api/properties/event-hall-large")]
+[ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class EventHallLargeController : HallPropertyControllerBase<EventHallLarge, EventHallLargeDetails>
 {
     public EventHallLargeController(ISender mediator, IWebHostEnvironment environment)

@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+﻿using Asp.Versioning;
 using Ihjezly.Application.Reviews.CreateReview;
 using Ihjezly.Application.Reviews.DeleteReview;
 using Ihjezly.Application.Reviews.ListReviewsForProperty;
@@ -6,11 +6,13 @@ using Ihjezly.Application.Reviews.UpdateReview;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Ihjezly.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class ReviewsController : ControllerBase
 {
     private readonly ISender _mediator;

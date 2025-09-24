@@ -1,4 +1,5 @@
-﻿using Ihjezly.Application.Reports.CreateReport;
+﻿using Asp.Versioning;
+using Ihjezly.Application.Reports.CreateReport;
 using Ihjezly.Application.Reports.DeleteReport;
 using Ihjezly.Application.Reports.GetAllReports;
 using Ihjezly.Application.Reports.GetReportById;
@@ -11,7 +12,8 @@ using System.Security.Claims;
 namespace Ihjezly.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class ReportsController : ControllerBase
 {
     private readonly ISender _mediator;

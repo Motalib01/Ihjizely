@@ -1,16 +1,18 @@
-﻿using Ihjezly.Application.Shared;
+﻿using Asp.Versioning;
+using Ihjezly.Api.Controllers.Request;
+using Ihjezly.Application.Properties.Halls.GetHallPropertyById;
+using Ihjezly.Application.Shared;
 using Ihjezly.Domain.Properties;
+using Ihjezly.Domain.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Claims;
-using Ihjezly.Application.Properties.Halls.GetHallPropertyById;
-using Ihjezly.Api.Controllers.Request;
-using Ihjezly.Domain.Shared;
 
 namespace Ihjezly.Api.Controllers.Base;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public abstract class HallPropertyControllerBase<TProperty, TDetails> : ControllerBase
     where TProperty : HallProperty<TDetails>, new()
 {

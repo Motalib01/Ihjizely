@@ -1,4 +1,5 @@
-﻿using Ihjezly.Api.Controllers.Request;
+﻿using Asp.Versioning;
+using Ihjezly.Api.Controllers.Request;
 using Ihjezly.Application.Users.CheckPhoneNumber;
 using Ihjezly.Application.Users.DeleteUser;
 using Ihjezly.Application.Users.ForgotPassword;
@@ -21,7 +22,8 @@ using System.Security.Claims;
 namespace Ihjezly.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class UsersController : ControllerBase
 {
     private readonly ISender _mediator;

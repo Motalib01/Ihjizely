@@ -1,4 +1,5 @@
-﻿using Ihjezly.Api.Controllers.Request;
+﻿using Asp.Versioning;
+using Ihjezly.Api.Controllers.Request;
 using Ihjezly.Application.Booking.CreateBooking;
 using Ihjezly.Application.Booking.DeleteBooking;
 using Ihjezly.Application.Booking.GetAllBookingsQuery;
@@ -11,7 +12,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Ihjezly.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class BookingsController : ControllerBase
 {
     private readonly ISender _mediator;

@@ -1,18 +1,20 @@
-﻿using Ihjezly.Api.Controllers.Request;
+﻿using Asp.Versioning;
+using Ihjezly.Api.Controllers.Request;
 using Ihjezly.Application.Properties.GetPropertyByIdGeneric;
+using Ihjezly.Application.Properties.Residence.UpdateResidence;
 using Ihjezly.Application.Shared;
 using Ihjezly.Domain.Properties;
+using Ihjezly.Domain.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Claims;
-using Ihjezly.Application.Properties.Residence.UpdateResidence;
-using Ihjezly.Domain.Shared;
 
 
 namespace Ihjezly.Api.Controllers.Base;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public abstract class ResidencePropertyControllerBase<TProperty, TDetails> : ControllerBase
     where TProperty : ResidenceProperty<TDetails>, new()
 {

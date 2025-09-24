@@ -1,4 +1,5 @@
-﻿using Ihjezly.Api.Controllers.Request;
+﻿using Asp.Versioning;
+using Ihjezly.Api.Controllers.Request;
 using Ihjezly.Application.Subscriptions.ActivateSubscriptionPlan;
 using Ihjezly.Application.Subscriptions.CreateSubscription;
 using Ihjezly.Application.Subscriptions.CreateSubscriptionPlan;
@@ -18,7 +19,8 @@ using System.Security.Claims;
 namespace Ihjezly.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class SubscriptionsController : ControllerBase
 {
     private readonly ISender _mediator;

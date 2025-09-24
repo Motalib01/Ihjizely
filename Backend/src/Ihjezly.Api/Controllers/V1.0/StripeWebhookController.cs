@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Asp.Versioning;
+using Ihjezly.Infrastructure.Payments.Stripe;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
-using Ihjezly.Infrastructure.Payments.Stripe;
 
 namespace Ihjezly.Api.Controllers;
 
-[Route("api/webhooks/stripe")]
 [ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class StripeWebhookController : ControllerBase
 {
     private readonly StripeOptions _options;

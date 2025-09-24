@@ -1,11 +1,13 @@
-﻿using Ihjezly.Application.Payments.Masarat;
+﻿using Asp.Versioning;
+using Ihjezly.Application.Payments.Masarat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ihjezly.Api.Controllers;
 
 [ApiController]
-[Route("api/wallet")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class WalletChargeController : ControllerBase
 {
     private readonly ISender _sender;

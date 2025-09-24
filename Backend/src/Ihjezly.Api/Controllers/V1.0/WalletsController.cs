@@ -1,4 +1,5 @@
-﻿using Ihjezly.Application.Abstractions.Authentication;
+﻿using Asp.Versioning;
+using Ihjezly.Application.Abstractions.Authentication;
 using Ihjezly.Application.Wallets.CreateWallet;
 using Ihjezly.Application.Wallets.GetAllWallets;
 using Ihjezly.Application.Wallets.GetWalletByUser;
@@ -7,7 +8,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Authorize]
 public class WalletsController : ControllerBase
 {

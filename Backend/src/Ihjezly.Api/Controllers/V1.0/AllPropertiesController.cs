@@ -1,4 +1,5 @@
-﻿using Ihjezly.Application.Properties.ChangePropertyIsAd;
+﻿using Asp.Versioning;
+using Ihjezly.Application.Properties.ChangePropertyIsAd;
 using Ihjezly.Application.Properties.ChangePropertyStatusNonGeneric;
 using Ihjezly.Application.Properties.DeleteProperty;
 using Ihjezly.Application.Properties.GetAllPropertiesByType;
@@ -14,7 +15,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Ihjezly.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class AllPropertiesController : ControllerBase
 {
     private readonly ISender _mediator;

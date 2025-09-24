@@ -1,11 +1,13 @@
-﻿using Ihjezly.Application.Payments.Edfali;
+﻿using Asp.Versioning;
+using Ihjezly.Application.Payments.Edfali;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ihjezly.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class EdfaliController : ControllerBase
 {
     private readonly IMediator _mediator;

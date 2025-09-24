@@ -1,4 +1,5 @@
-﻿using Ihjezly.Api.Controllers.Request;
+﻿using Asp.Versioning;
+using Ihjezly.Api.Controllers.Request;
 using Ihjezly.Application.Abstractions.Authentication;
 using Ihjezly.Application.Transactions.AddFunds;
 using Ihjezly.Application.Transactions.AdminAddFunds;
@@ -13,7 +14,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Ihjezly.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Authorize]
 public class TransactionsController : ControllerBase
 {

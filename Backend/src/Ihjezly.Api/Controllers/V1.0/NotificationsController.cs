@@ -1,4 +1,5 @@
-﻿using Ihjezly.Api.Controllers.Request;
+﻿using Asp.Versioning;
+using Ihjezly.Api.Controllers.Request;
 using Ihjezly.Application.Notifications.CreateNotification;
 using Ihjezly.Application.Notifications.DeleteNotification;
 using Ihjezly.Application.Notifications.ListUserNotifications;
@@ -10,7 +11,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Ihjezly.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class NotificationsController : ControllerBase
 {
     private readonly ISender _mediator;
