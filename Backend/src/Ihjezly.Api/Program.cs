@@ -45,7 +45,7 @@ namespace Ihjezly.Api
             })
             .AddApiExplorer(options =>
             {
-                options.GroupNameFormat = "'v'VVV"; // v1, v1.1, v2
+                options.GroupNameFormat = "'v'VVV"; 
                 options.SubstituteApiVersionInUrl = true;
             });
 

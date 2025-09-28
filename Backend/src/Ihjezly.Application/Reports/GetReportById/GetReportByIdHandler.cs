@@ -2,18 +2,42 @@
 using Ihjezly.Domain.Abstractions;
 using Ihjezly.Domain.NewFolder;
 using Ihjezly.Domain.Reposrts.Repositories;
+using Microsoft.EntityFrameworkCore;
 
-namespace Ihjezly.Application.Reports.GetReportById;
-
-internal sealed class GetReportByIdHandler : IQueryHandler<GetReportByIdQuery, Report>
+namespace Ihjezly.Application.Reports.GetReportById
 {
-    private readonly IReportRepository _repository;
-
-    public GetReportByIdHandler(IReportRepository repository) => _repository = repository;
-
-    public async Task<Result<Report>> Handle(GetReportByIdQuery request, CancellationToken cancellationToken)
+    internal sealed class GetReportByIdHandler
+        : IQueryHandler<GetReportByIdQuery, ReportDetailsResponse>
     {
-        var report = await _repository.GetByIdAsync(request.ReportId, cancellationToken);
-        return report is null ? Result.Failure<Report>(ReportErrors.NotFound) : report;
+        private readonly IReportRepository _repository;
+
+        public GetReportByIdHandler(IReportRepository repository)
+            => _repository = repository;
+
+        public async Task<Result<ReportDetailsResponse>> Handle(
+            GetReportByIdQuery request,
+            CancellationToken cancellationToken)
+        {
+            var report = await _repository
+                .GetByIdWithUserAsync(request.ReportId, cancellationToken);
+            // <-- you’ll need this method in repo
+
+            if (report is null)
+                return Result.Failure<ReportDetailsResponse>(ReportErrors.NotFound);
+
+            var response = new ReportDetailsResponse(
+                report.Id,
+                report.Reason,
+                report.Content,
+                report.CreatedAt,
+                report.User.Id,
+                report.User.FirstName,
+                report.User.LastName,
+                report.User.PhoneNumber,
+                report.User.Email
+            );
+
+            return response;
+        }
     }
 }

@@ -27,4 +27,8 @@ public static class UserErrors
     public static Error UserBlocked = new(
         "User.Blocked",
         "This user is blocked by an admin and cannot log in");
+
+    public static Error CannotDeleteWithBalance = new(
+        "User.CannotDeleteWithBalance",
+        "Can not Delet is have balance in his wallet");
 }

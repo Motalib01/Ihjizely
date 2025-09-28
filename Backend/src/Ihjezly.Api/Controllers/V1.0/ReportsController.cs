@@ -3,6 +3,7 @@ using Ihjezly.Application.Reports.CreateReport;
 using Ihjezly.Application.Reports.DeleteReport;
 using Ihjezly.Application.Reports.GetAllReports;
 using Ihjezly.Application.Reports.GetReportById;
+using Ihjezly.Application.Reports.ReplayReport;
 using Ihjezly.Application.Reports.UpdateReport;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -54,6 +55,22 @@ public class ReportsController : ControllerBase
             return BadRequest("Route ID and body ID must match.");
 
         return Ok(await _mediator.Send(command));
+    }
+
+    [HttpPost("{id}/replay")]
+    public async Task<IActionResult> Replay(Guid id, [FromBody] string replay)
+    {
+        if (string.IsNullOrWhiteSpace(replay))
+            return BadRequest("Replay cannot be empty.");
+
+        var command = new ReplayReportCommand(id, replay);
+
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok(result);
     }
 
     [HttpDelete("{id}")]

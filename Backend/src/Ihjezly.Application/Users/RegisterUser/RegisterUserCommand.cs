@@ -8,5 +8,6 @@ public sealed record RegisterUserCommand(
     string FirstName,
     string LastName,
     string PhoneNumber,
+    string Email,
     string Password,
     UserRole Role) : ICommand<UserDto>;

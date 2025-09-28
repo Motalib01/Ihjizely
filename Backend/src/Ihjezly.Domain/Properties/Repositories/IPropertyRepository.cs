@@ -26,5 +26,4 @@ public interface IPropertyRepository
     void Update(Property property);
     Task<List<Property>> SearchAsync(PropertySearchRequest request, CancellationToken cancellationToken = default);
 
-
 }

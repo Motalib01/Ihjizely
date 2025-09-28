@@ -28,7 +28,9 @@ internal sealed class GetAllActiveSubscriptionsHandler
                 x.EndDate,
                 x.Price.Amount,
                 x.Price.Currency.Code,
-                x.IsActive
+                x.IsActive,
+                x.UsedAds,
+                x.MaxAds
             ))
             .ToList();
 

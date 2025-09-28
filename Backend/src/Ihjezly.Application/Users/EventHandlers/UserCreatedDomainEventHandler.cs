@@ -23,6 +23,6 @@ public sealed class UserCreatedDomainEventHandler : INotificationHandler<UserCre
 
         var wallet = Wallet.Create(notification.UserId);
         _walletRepository.Add(wallet);
-        await _unitOfWork.SaveChangesAsync(cancellationToken); // ✅ Make sure it's persisted
+        await _unitOfWork.SaveChangesAsync(cancellationToken); 
     }
 }

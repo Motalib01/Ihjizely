@@ -5,8 +5,8 @@ public sealed class Admin : User
 {
     private Admin() : base(Guid.NewGuid()) { }
 
-    private Admin(string firstName, string lastName, string phoneNumber, string passwordHash)
-        : base(firstName, lastName, phoneNumber, passwordHash, UserRole.Admin)
+    private Admin(string firstName, string lastName, string phoneNumber, string email, string passwordHash)
+        : base(firstName, lastName, phoneNumber, email, passwordHash, UserRole.Admin)
     {
         RaiseDomainEvent(new UserCreatedDomainEvent(Id, UserRole.Admin));
     }
@@ -15,10 +15,11 @@ public sealed class Admin : User
         string firstName,
         string lastName,
         string phoneNumber,
+        string email,
         string passwordHash,
         bool isVerified = false)
     {
-        var admin = new Admin(firstName, lastName,  phoneNumber, passwordHash);
+        var admin = new Admin(firstName, lastName,  phoneNumber, email, passwordHash);
         admin.SetIsVerified(isVerified);
         return admin;
     }

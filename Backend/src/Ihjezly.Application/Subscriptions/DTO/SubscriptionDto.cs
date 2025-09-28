@@ -8,5 +8,7 @@ public sealed record SubscriptionDto(
     DateTime EndDate,
     decimal Price,
     string Currency,
-    bool IsActive
+    bool IsActive,
+    int UsedAds,
+    int MaxAds
 );

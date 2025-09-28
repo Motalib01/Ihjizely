@@ -52,6 +52,7 @@ internal sealed class UpdateUserCommandHandler : ICommandHandler<UpdateUserComma
             request.FirstName,
             request.LastName,
             request.PhoneNumber,
+            request.Email,
             profilePicture
         );
 

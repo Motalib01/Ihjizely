@@ -36,7 +36,23 @@ internal sealed class CreateBookingHandler : ICommandHandler<CreateBookingComman
         if (property is null)
             return Result.Failure<BookingDto>(PropertyErrors.NotFound);
 
-        // 2) Create booking
+        // 2) Check if client already has overlapping booking
+        var clientBookings = await _repository.GetByClientIdAsync(request.ClientId, cancellationToken);
+
+        bool hasOverlap = clientBookings.Any(b =>
+            b.Status != Domain.Booking.BookingStatus.Rejected && // ignore rejected bookings
+            b.StartDate < request.EndDate &&
+            request.StartDate < b.EndDate
+        );
+
+        if (hasOverlap)
+        {
+            return Result.Failure<BookingDto>(
+                new Error("Booking.Overlap", "لا يمكنك إجراء أكثر من حجز لنفس الفترة الزمنية.")
+            );
+        }
+
+        // 3) Create booking
         var booking = BookingEntity.Reserve(
             request.ClientId,
             request.Name,
@@ -49,7 +65,7 @@ internal sealed class CreateBookingHandler : ICommandHandler<CreateBookingComman
 
         _repository.Add(booking);
 
-        // 3) Notify business owner
+        // 4) Notify business owner
         var businessOwnerId = property.BusinessOwnerId;
         var ownerNotification = Notification.Create(
             businessOwnerId,
@@ -57,10 +73,10 @@ internal sealed class CreateBookingHandler : ICommandHandler<CreateBookingComman
         );
         _notificationRepository.Add(ownerNotification);
 
-        // 4) Save all
+        // 5) Save all
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // 5) Map to DTO
+        // 6) Map to DTO
         var dto = new BookingDto(
             booking.Id,
             booking.ClientId,

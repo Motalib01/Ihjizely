@@ -4,6 +4,7 @@ public interface IUserRepository
 {
     Task<User?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<User?> GetByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken = default);
+    Task<User?> GetByPhoneOrEmailAsync(string identifier, CancellationToken cancellationToken = default);
     Task AddAsync(User user, CancellationToken cancellationToken = default); 
     Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<int> CountByRoleAsync(UserRole role, CancellationToken cancellationToken = default);

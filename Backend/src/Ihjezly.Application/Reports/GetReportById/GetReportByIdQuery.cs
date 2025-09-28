@@ -3,4 +3,16 @@ using Ihjezly.Domain.NewFolder;
 
 namespace Ihjezly.Application.Reports.GetReportById;
 
-public sealed record GetReportByIdQuery(Guid ReportId) : IQuery<Report>;
+public sealed record GetReportByIdQuery(Guid ReportId) : IQuery<ReportDetailsResponse>;
+
+public sealed record ReportDetailsResponse(
+    Guid Id,
+    string Reason,
+    string Content,
+    DateTime CreatedAt,
+    Guid UserId,
+    string FirstName,
+    string LastName,
+    string PhoneNumber,
+    string Email
+);

@@ -8,6 +8,7 @@ using Ihjezly.Domain.Properties;
 using Ihjezly.Domain.Properties.Repositories;
 using Ihjezly.Domain.Shared;
 using Ihjezly.Domain.Transactions;
+using Ihjezly.Domain.Users.Repositories;
 
 public sealed class UpdateBookingStatusCommandHandler : ICommandHandler<UpdateBookingStatusCommand>
 {
@@ -17,6 +18,7 @@ public sealed class UpdateBookingStatusCommandHandler : ICommandHandler<UpdateBo
     private readonly ITransactionRepository _transactionRepository;
     private readonly IPropertyRepository _propertyRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserRepository _userRepository;
 
     public UpdateBookingStatusCommandHandler(
         IBookingRepository bookingRepository,
@@ -24,6 +26,7 @@ public sealed class UpdateBookingStatusCommandHandler : ICommandHandler<UpdateBo
         INotificationRepository notificationRepository,
         ITransactionRepository transactionRepository,
         IPropertyRepository propertyRepository,
+        IUserRepository userRepository,
         IUnitOfWork unitOfWork)
     {
         _bookingRepository = bookingRepository;
@@ -31,6 +34,7 @@ public sealed class UpdateBookingStatusCommandHandler : ICommandHandler<UpdateBo
         _notificationRepository = notificationRepository;
         _transactionRepository = transactionRepository;
         _propertyRepository = propertyRepository;
+        _userRepository = userRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -39,6 +43,14 @@ public sealed class UpdateBookingStatusCommandHandler : ICommandHandler<UpdateBo
         var booking = await _bookingRepository.GetByIdAsync(request.BookingId, cancellationToken);
         if (booking is null)
             return Result.Failure(BookingErrors.NotFound);
+
+        var property = await _propertyRepository.GetByIdNonGeniricAsync(booking.PropertyId, cancellationToken);
+        if (property is null)
+            return Result.Failure(new Error("Property.NotFound", "Property not found."));
+
+        var owner = await _userRepository.GetByIdAsync(property.BusinessOwnerId, cancellationToken);
+        if (owner is null)
+            return Result.Failure(new Error("Owner.NotFound", "Business owner not found."));
 
         var clientId = booking.ClientId;
         string notificationMessage = "";
@@ -54,42 +66,82 @@ public sealed class UpdateBookingStatusCommandHandler : ICommandHandler<UpdateBo
 
         if (request.NewStatus == BookingStatus.Rejected)
         {
-            notificationMessage = $"تم رفض حجزك ل '{booking.Name}'. لم يتم خصم أي مبلغ.";
-        }
-        else if (request.NewStatus == BookingStatus.Confirmed)
-        {
+            // Refund the 20 LYD
             var wallet = await _walletRepository.GetByUserIdAsync(clientId, cancellationToken);
             if (wallet is null)
                 return Result.Failure(WalletErrors.NotFound);
 
-            var fee = new Money(20, Currency.FromCode("LYD"));
+            var refund = new Money(20, Currency.FromCode("LYD"));
+            wallet.AddFunds(refund);
+            _walletRepository.Update(wallet);
+
+            var refundTransaction = Transaction.Create(wallet.Id, refund, "Booking refund (rejected)");
+            _transactionRepository.Add(refundTransaction);
+
+            notificationMessage =
+                $"تم رفض حجزك ل '{booking.Name}'. تم رد مبلغ {refund.Amount} {refund.Currency.Code} إلى محفظتك.";
+        }
+        else if (request.NewStatus == BookingStatus.Confirmed)
+        {
+            // 1. Deduct 20 LYD from client wallet
+            var wallet = await _walletRepository.GetByUserIdAsync(clientId, cancellationToken);
+            if (wallet is null)
+                return Result.Failure(WalletErrors.NotFound);
+
+            var bookingFee = new Money(20, Currency.FromCode("LYD"));
 
             try
             {
-                wallet.DeductFunds(fee);
+                wallet.DeductFunds(bookingFee);
             }
             catch (InvalidOperationException)
             {
-                return Result.Failure<BookingDto>(WalletErrors.InsufficientBalance);
+                return Result.Failure(new Error("Wallet.InsufficientFunds", "رصيدك غير كافٍ لإتمام الحجز."));
             }
 
             _walletRepository.Update(wallet);
 
-            var transaction = Transaction.Create(wallet.Id, fee, "Booking creation fee");
-            _transactionRepository.Add(transaction);
+            var paymentTransaction = Transaction.Create(wallet.Id, bookingFee, "Booking confirmation fee");
+            _transactionRepository.Add(paymentTransaction);
 
-            // Add booking dates to property's unavailable list
-            var property = await _propertyRepository.GetByIdNonGeniricAsync(booking.PropertyId, cancellationToken);
-            if (property is null)
-                return Result.Failure(new Error("Property.NotFound", "Property not found."));
-
+            // 2. Mark property dates as unavailable
             property.AddUnavailableRange(booking.StartDate, booking.EndDate);
-
             _propertyRepository.Update(property);
 
-            notificationMessage = $"تم قبول حجزك ل '{booking.Name}'. تم خصم رسوم الحجز بقيمة {fee.Amount} {fee.Currency.Code}.";
-        }
+            // 3. Notification with optional owner phone
+            notificationMessage = $"تم قبول حجزك ل '{booking.Name}'.";
+            if (property is RestHouse || property is Apartment || property is Chalet)
+            {
+                notificationMessage += $" للتواصل مع صاحب العقار: {owner.PhoneNumber}";
+            }
 
+            // 4. Refuse all overlapping bookings
+            var overlappingBookings = await _bookingRepository.GetOverlappingBookingsAsync(
+                booking.PropertyId,
+                booking.StartDate,
+                booking.EndDate,
+                cancellationToken
+            );
+
+            foreach (var otherBooking in overlappingBookings)
+            {
+                if (otherBooking.Id == booking.Id)
+                    continue;
+
+                if (otherBooking.Status != BookingStatus.Pending)
+                    continue;
+
+                otherBooking.ChangeStatusTo(BookingStatus.Rejected);
+
+                var otherNotification = Notification.Create(
+                    otherBooking.ClientId,
+                    $"تم رفض حجزك ل '{otherBooking.Name}' بسبب تعارض مع حجز آخر مؤكد."
+                );
+                _notificationRepository.Add(otherNotification);
+
+                _bookingRepository.Update(otherBooking);
+            }
+        }
         else if (request.NewStatus == BookingStatus.Completed)
         {
             notificationMessage = $"تم إكمال حجزك ل '{booking.Name}'.";
@@ -108,4 +160,5 @@ public sealed class UpdateBookingStatusCommandHandler : ICommandHandler<UpdateBo
 
         return Result.Success();
     }
+
 }

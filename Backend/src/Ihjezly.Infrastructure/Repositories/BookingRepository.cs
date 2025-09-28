@@ -18,6 +18,7 @@ internal sealed class BookingRepository : IBookingRepository
     public async Task<Booking?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         await _dbContext.Bookings.FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
 
+
     public async Task<List<Booking>> GetAllAsync(CancellationToken cancellationToken = default) =>
         await _dbContext.Bookings.ToListAsync(cancellationToken);
 
@@ -25,6 +26,14 @@ internal sealed class BookingRepository : IBookingRepository
     {
         return await _dbContext.Bookings
             .Where(b => b.ClientId == clientId)
+            .ToListAsync(cancellationToken);
+    }
+
+
+    public async Task<List<Booking>> GetByPropertyId(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Bookings
+            .Where(b => b.PropertyId == id)
             .ToListAsync(cancellationToken);
     }
 
@@ -44,6 +53,20 @@ internal sealed class BookingRepository : IBookingRepository
             select booking;
 
         return await query.ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<Booking>> GetOverlappingBookingsAsync(
+        Guid propertyId,
+        DateTime startDate,
+        DateTime endDate,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Bookings
+            .Where(b => b.PropertyId == propertyId
+                        && b.Status == BookingStatus.Pending // only pending ones matter
+                        && b.StartDate < endDate
+                        && b.EndDate > startDate)
+            .ToListAsync(cancellationToken);
     }
 
 

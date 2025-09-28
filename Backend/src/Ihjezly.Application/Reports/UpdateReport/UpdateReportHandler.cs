@@ -21,7 +21,7 @@ internal sealed class UpdateReportHandler : ICommandHandler<UpdateReportCommand>
         var report = await _repository.GetByIdAsync(request.ReportId, cancellationToken);
         if (report is null) return Result.Failure(ReportErrors.NotFound);
 
-        report.Update(request.Reason, request.Content);
+        report.Update(request.Reason, request.Content, request.IsRead);
         _repository.Update(report);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);

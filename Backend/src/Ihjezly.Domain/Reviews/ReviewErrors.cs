@@ -8,4 +8,9 @@ public static class ReviewErrors
         "Review.NotFound",
         "The specified review could not be found."
     );
+
+    public static Error CantReview = new(
+        "Review.CantReview",
+        "Cant Review for this property."
+        );
 }

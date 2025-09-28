@@ -56,6 +56,11 @@ public class UserRepository : IUserRepository
         _context.Users.Update(user);
     }
 
+    public async Task<User?> GetByPhoneOrEmailAsync(string identifier, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.PhoneNumber == identifier || u.Email == identifier, cancellationToken);
+    }
 
     public void Remove(User user) => _context.Users.Remove(user);
 

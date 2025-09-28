@@ -106,6 +106,7 @@ public class UsersController : ControllerBase
             form.FirstName,
             form.LastName,
             form.PhoneNumber,
+            form.Email,
             form.ProfileImageFile
         );
 

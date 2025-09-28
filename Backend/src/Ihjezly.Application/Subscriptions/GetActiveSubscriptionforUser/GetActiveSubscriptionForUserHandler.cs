@@ -34,7 +34,9 @@ internal sealed class GetActiveSubscriptionForUserHandler
             activeSubscription.EndDate,
             activeSubscription.Price.Amount,
             activeSubscription.Price.Currency.Code,
-            activeSubscription.IsActive
+            activeSubscription.IsActive,
+            activeSubscription.UsedAds,
+            activeSubscription.MaxAds
         );
     }
 

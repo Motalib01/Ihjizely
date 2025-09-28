@@ -23,28 +23,23 @@ internal sealed class LoginUserCommandHandler : ICommandHandler<LoginUserCommand
 
     public async Task<Result<AccessTokenResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetByPhoneNumberAsync(request.PhoneNumber, cancellationToken);
+        var user = await _userRepository.GetByPhoneOrEmailAsync(request.EmailOrPhone, cancellationToken);
 
         // Check if user exists
         if (user is null)
-        {
             return Result.Failure<AccessTokenResponse>(UserErrors.InvalidCredentials);
-        }
 
-        // Check if user is blocked (manually by Admin)
+        // Check if user is blocked
         if (user.IsBlocked)
-        {
             return Result.Failure<AccessTokenResponse>(UserErrors.UserBlocked);
-        }
 
         // Verify password
         if (!_jwtService.VerifyPassword(user.Password, request.Password))
-        {
             return Result.Failure<AccessTokenResponse>(UserErrors.InvalidCredentials);
-        }
 
-        // Login success → generate JWT
+        // Success → generate JWT
         var token = _jwtService.GenerateToken(user);
         return new AccessTokenResponse(token);
     }
+
 }

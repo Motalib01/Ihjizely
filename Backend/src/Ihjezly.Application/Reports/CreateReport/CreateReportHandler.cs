@@ -24,7 +24,7 @@ internal sealed class CreateReportHandler : ICommandHandler<CreateReportCommand>
 
     public async Task<Result> Handle(CreateReportCommand request, CancellationToken cancellationToken)
     {
-        var report = Report.Create(request.UserId, request.Reason, request.Content);
+        var report = Report.Create(request.UserId, request.Reason, request.Content,request.Replay, request.IsRead);
         _repository.Add(report);
 
         var notificationMessage = "تم إرسال بلاغك بنجاح وهو قيد المراجعة.";

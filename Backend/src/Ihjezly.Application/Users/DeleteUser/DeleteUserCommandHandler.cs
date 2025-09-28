@@ -31,21 +31,27 @@ internal sealed class DeleteUserCommandHandler : ICommandHandler<DeleteUserComma
         if (user is null)
             return Result.Failure(UserErrors.NotFound);
 
-        // 1. Delete all properties of this user
+        // 1. Check wallet
+        var wallet = await _walletRepository.GetByUserIdAsync(user.Id, cancellationToken);
+        if (wallet is not null && wallet.Balance.Amount > 0)
+        {
+            return Result.Failure(UserErrors.CannotDeleteWithBalance);
+        }
+
+        // 2. Delete all properties of this user
         var properties = await _propertyRepository.GetByBusinessOwnerIdAsync(user.Id, cancellationToken);
         foreach (var property in properties)
         {
             _propertyRepository.Remove(property);
         }
 
-        // 2. Delete wallet
-        var wallet = await _walletRepository.GetByUserIdAsync(user.Id, cancellationToken);
+        // 3. Delete wallet (if empty)
         if (wallet is not null)
         {
-            _walletRepository.Remove(wallet); // you'd add this method
+            _walletRepository.Remove(wallet);
         }
 
-        // 3. Delete the user itself
+        // 4. Delete the user itself
         user.Delete();
         _userRepository.Remove(user);
 

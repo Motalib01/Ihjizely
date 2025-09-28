@@ -10,7 +10,8 @@ public abstract class User : Entity
 
     public string FirstName { get; protected set; } = string.Empty;
     public string LastName { get; protected set; } = string.Empty;
-    public string PhoneNumber { get; protected set; } = string.Empty;
+    public string? PhoneNumber { get; protected set; } = string.Empty;
+    public string? Email { get; protected set; } = string.Empty;
     public string Password { get; protected set; } = string.Empty;
     public UserRole Role { get; protected set; }
     public Image UserProfilePicture { get; protected set; } = Image.Default;
@@ -27,6 +28,7 @@ public abstract class User : Entity
         string firstName,
         string lastName,
         string phoneNumber,
+        string email,
         string password,
         UserRole role)
         : this(Guid.NewGuid())
@@ -34,6 +36,7 @@ public abstract class User : Entity
         FirstName = firstName;
         LastName = lastName;
         PhoneNumber = phoneNumber;
+        Email = email;
         Password = password;
         Role = role;
         UserProfilePicture = Image.Default;
@@ -49,11 +52,12 @@ public abstract class User : Entity
         SetIsVerified(true);
     }
 
-    public void UpdateProfile(string firstName, string lastName, string phoneNumber, Image userProfilePicture)
+    public void UpdateProfile(string firstName, string lastName, string phoneNumber, string email, Image userProfilePicture)
     {
         FirstName = firstName;
         LastName = lastName;
         PhoneNumber = phoneNumber;
+        Email = email;
         UserProfilePicture = userProfilePicture;
 
         RaiseDomainEvent(new UserUpdatedDomainEvent(Id));
