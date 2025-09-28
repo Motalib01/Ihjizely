@@ -83,39 +83,19 @@ public sealed class UpdateBookingStatusCommandHandler : ICommandHandler<UpdateBo
         }
         else if (request.NewStatus == BookingStatus.Confirmed)
         {
-            // 1. Deduct 20 LYD from client wallet
-            var wallet = await _walletRepository.GetByUserIdAsync(clientId, cancellationToken);
-            if (wallet is null)
-                return Result.Failure(WalletErrors.NotFound);
 
-            var bookingFee = new Money(20, Currency.FromCode("LYD"));
-
-            try
-            {
-                wallet.DeductFunds(bookingFee);
-            }
-            catch (InvalidOperationException)
-            {
-                return Result.Failure(new Error("Wallet.InsufficientFunds", "رصيدك غير كافٍ لإتمام الحجز."));
-            }
-
-            _walletRepository.Update(wallet);
-
-            var paymentTransaction = Transaction.Create(wallet.Id, bookingFee, "Booking confirmation fee");
-            _transactionRepository.Add(paymentTransaction);
-
-            // 2. Mark property dates as unavailable
+            // 1. Mark property dates as unavailable
             property.AddUnavailableRange(booking.StartDate, booking.EndDate);
             _propertyRepository.Update(property);
 
-            // 3. Notification with optional owner phone
+            // 2. Notification with optional owner phone
             notificationMessage = $"تم قبول حجزك ل '{booking.Name}'.";
             if (property is RestHouse || property is Apartment || property is Chalet)
             {
                 notificationMessage += $" للتواصل مع صاحب العقار: {owner.PhoneNumber}";
             }
 
-            // 4. Refuse all overlapping bookings
+            // 3. Refuse all overlapping bookings
             var overlappingBookings = await _bookingRepository.GetOverlappingBookingsAsync(
                 booking.PropertyId,
                 booking.StartDate,
