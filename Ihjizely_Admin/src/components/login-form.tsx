@@ -18,7 +18,7 @@ type LoginFormProps = React.ComponentProps<"div">
 
 export function LoginForm({ className, ...props }: LoginFormProps) {
   const [credentials, setCredentials] = useState({
-    phoneNumber: '',
+    emailOrPhone: '',
     password: ''
   })
   const { login, isLoading, error } = useAuth()
@@ -56,13 +56,13 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
               
               <div className="grid gap-6">
                 <div className="grid gap-3">
-                  <Label htmlFor="phoneNumber">Phone Number</Label>
+                  <Label htmlFor="emailOrPhone">Phone Number</Label>
                   <Input
-                    id="phoneNumber"
+                    id="emailOrPhone"
                     type="text"
-                    placeholder="phoneNumber"
+                    placeholder="emailOrPhone"
                     required
-                    value={credentials.phoneNumber}
+                    value={credentials.emailOrPhone}
                     onChange={handleChange}
                   />
                 </div>

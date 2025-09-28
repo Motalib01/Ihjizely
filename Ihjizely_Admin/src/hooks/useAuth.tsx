@@ -7,7 +7,7 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
 
-  const login = async (credentials: { phoneNumber: string; password: string }) => {
+  const login = async (credentials: { emailOrPhone: string; password: string }) => {
     setIsLoading(true)
     setError('')
     

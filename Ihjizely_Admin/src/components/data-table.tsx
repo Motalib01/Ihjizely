@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useDarkMode } from './DarkModeContext';
 
 import {
   closestCenter,
@@ -83,34 +84,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { usersService } from "@/API/UsersService";
 import { PropertyDetailsModal } from "./Admin/PropertyDetailsModal";
 import { reservationService } from "@/API/ReservationService";
+
 // Define schemas
 export const userSchema = z.object({
-  id: z.string(), // Change from number to string
+  id: z.string(),
   name: z.string(),
   username: z.string(),
   role: z.string(),
   email: z.string(),
   date: z.string(),
   image: z.string(),
-  isBlocked: z.boolean() // Add this
+  isBlocked: z.boolean()
 });
 
 export const unitSchema = z.object({
   id: z.string(),
   type: z.string(),
-  isAd: z.boolean(), // Change from Boolean to boolean
+  isAd: z.boolean(),
   unitName: z.string(),
   image: z.string(),
   owner: z.string(),
   location: z.string(),
-  status: z.enum(['Pending', 'Accepted', 'Refused']), // Add this
+  status: z.enum(['Pending', 'Accepted', 'Refused']),
   subscriptionStatus: z.boolean(),
   registrationDate: z.string(),
   premiumSubscription: z.boolean(),
   businessOwnerFirstName: z.string(),
   businessOwnerLastName: z.string(),
 });
-
 
 export const subscriptionSchema = z.object({
   id: z.string(),
@@ -129,16 +130,15 @@ export const subscriptionSchema = z.object({
   hasAdQuota: z.boolean(),
 });
 
-
 export const walletSchema = z.object({
   id: z.number(),
   name: z.string(),
-  walletId: z.string(), // Add this line
-
+  walletId: z.string(),
   balance: z.string(),
   registrationDate: z.string(),
   email: z.string(),
 });
+
 export const bookingSchema = z.object({
   id: z.string(),
   clientId: z.string(),
@@ -167,7 +167,7 @@ export type SubscriptionRow = z.infer<typeof subscriptionSchema>;
 export type WalletRow = z.infer<typeof walletSchema>;
 
 // Generic DraggableRow component
-function DraggableRow<TData>({ row }: { row: Row<TData> }) {
+function DraggableRow<TData>({ row, isDarkMode }: { row: Row<TData>; isDarkMode: boolean }) {
   const id = (row.original as { id: number }).id.toString();
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id,
@@ -178,14 +178,19 @@ function DraggableRow<TData>({ row }: { row: Row<TData> }) {
       ref={setNodeRef}
       data-state={row.getIsSelected() && "selected"}
       data-dragging={isDragging}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
+      className={`relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80 ${
+        isDarkMode ? "dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700" : ""
+      }`}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
       }}
     >
       {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
+        <TableCell 
+          key={cell.id}
+          className={isDarkMode ? "dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700" : ""}
+        >
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </TableCell>
       ))}
@@ -199,15 +204,18 @@ interface DataTableProps<TData> {
   columns: ColumnDef<TData>[];
 }
 
-export function DataTable<TData extends { id: string  }>({
+export function DataTable<TData extends { id: string }>({
   data,
   columns,
 }: DataTableProps<TData>) {
+  const { isDarkMode } = useDarkMode();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [internalData, setInternalData] = React.useState<TData[]>(data);
+  
   React.useEffect(() => {
     setInternalData(data);
   }, [data]);
+
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
@@ -248,12 +256,18 @@ export function DataTable<TData extends { id: string  }>({
       onDragEnd={handleDragEnd}
       sensors={sensors}
     >
-      <Table>
-        <TableHeader>
+      <Table className={isDarkMode ? "dark" : ""}>
+        <TableHeader className={isDarkMode ? "dark:bg-gray-900" : ""}>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <TableRow 
+              key={headerGroup.id} 
+              className={isDarkMode ? "dark:bg-gray-900 dark:border-gray-700" : ""}
+            >
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
+                <TableHead 
+                  key={header.id}
+                  className={isDarkMode ? "dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700" : ""}
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(
@@ -265,13 +279,13 @@ export function DataTable<TData extends { id: string  }>({
             </TableRow>
           ))}
         </TableHeader>
-        <TableBody>
+        <TableBody className={isDarkMode ? "dark:bg-gray-800" : ""}>
           <SortableContext
             items={dataIds}
             strategy={verticalListSortingStrategy}
           >
             {table.getRowModel().rows.map((row) => (
-              <DraggableRow key={row.id} row={row} />
+              <DraggableRow key={row.id} row={row} isDarkMode={isDarkMode} />
             ))}
           </SortableContext>
         </TableBody>
@@ -282,6 +296,7 @@ export function DataTable<TData extends { id: string  }>({
 
 // User-specific table
 export default function UserTable({ data }: { data: UserRow[] }) {
+  const { isDarkMode } = useDarkMode();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<'all' | 'blocked' | 'unblocked'>('all');
   const [loading, setLoading] = useState(false);
@@ -308,8 +323,8 @@ export default function UserTable({ data }: { data: UserRow[] }) {
     try {
       setLoading(true);
       const warningKey = `block-warning-${user.id}`;
-      const countString = localStorage.getItem(warningKey); // Get the string or null
-      const count = countString ? parseInt(countString) : 0; // Properly handle null case
+      const countString = localStorage.getItem(warningKey);
+      const count = countString ? parseInt(countString) : 0;
       
       const userDetails = await usersService.getUserById(user.id);
       
@@ -334,11 +349,11 @@ export default function UserTable({ data }: { data: UserRow[] }) {
 
   const handleBlockUser = async (userId: string, userName: string) => {
     try {
-
       setLoading(true);
       const warningKey = `block-warning-${userId}`;
       const warningCountString = localStorage.getItem(warningKey);
       const warningCount = warningCountString ? parseInt(warningCountString) : 0;
+      
       if (warningCount < 2) {
         await usersService.blockUser(userId);
 
@@ -368,7 +383,6 @@ export default function UserTable({ data }: { data: UserRow[] }) {
       if (!confirmResult.isConfirmed) return;
   
       await usersService.blockUser(userId);
-      console.log(userId)
       localStorage.removeItem(warningKey);
       
       await Swal.fire({
@@ -378,7 +392,6 @@ export default function UserTable({ data }: { data: UserRow[] }) {
         confirmButtonText: 'حسناً'
       });
       
-      // Refresh data
       window.location.reload();
     } catch (error) {
       console.error('Block user failed:', error);
@@ -431,7 +444,6 @@ export default function UserTable({ data }: { data: UserRow[] }) {
         confirmButtonText: 'حسناً'
       });
   
-      // Refresh data
       window.location.reload();
     } catch (error) {
       await Swal.fire({
@@ -456,8 +468,10 @@ export default function UserTable({ data }: { data: UserRow[] }) {
             <AvatarFallback>{row.original.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-medium">{row.original.name}</span>
-            <span className="text-sm text-muted-foreground">
+            <span className={`font-medium ${isDarkMode ? "dark:text-gray-100" : ""}`}>
+              {row.original.name}
+            </span>
+            <span className={`text-sm ${isDarkMode ? "dark:text-gray-400" : "text-muted-foreground"}`}>
               {row.original.username}
             </span>
           </div>
@@ -472,12 +486,12 @@ export default function UserTable({ data }: { data: UserRow[] }) {
     {
       accessorKey: "email",
       header: "رقم الهاتف",
-      cell: ({ row }) => <span>{row.original.username}</span>,
+      cell: ({ row }) => <span className={isDarkMode ? "dark:text-gray-100" : ""}>{row.original.username}</span>,
     },
     {
       accessorKey: "date",
       header: "تاريخ الإنشاء",
-      cell: ({ row }) => <span>{row.original.date}</span>,
+      cell: ({ row }) => <span className={isDarkMode ? "dark:text-gray-100" : ""}>{row.original.date}</span>,
     },
     {
       accessorKey: "status",
@@ -497,6 +511,7 @@ export default function UserTable({ data }: { data: UserRow[] }) {
             variant="ghost"
             size="icon"
             onClick={() => handleInfoClick(row.original)}
+            className={isDarkMode ? "dark:hover:bg-gray-700" : ""}
           >
             <InfoIcon className="w-4 h-4 text-blue-500" />
           </Button>
@@ -505,11 +520,9 @@ export default function UserTable({ data }: { data: UserRow[] }) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleUnblockUser(
-                row.original.id,
-                row.original.name
-              )}
+              onClick={() => handleUnblockUser(row.original.id, row.original.name)}
               disabled={loading}
+              className={isDarkMode ? "dark:hover:bg-gray-700" : ""}
             >
               <ThumbsUpIcon className="w-4 h-4 text-green-500" />
             </Button>
@@ -517,11 +530,9 @@ export default function UserTable({ data }: { data: UserRow[] }) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleBlockUser(
-                row.original.id,
-                row.original.name
-              )}
+              onClick={() => handleBlockUser(row.original.id, row.original.name)}
               disabled={loading}
+              className={isDarkMode ? "dark:hover:bg-gray-700" : ""}
             >
               <IconUserOff className="w-4 h-4 text-red-500" />
             </Button>
@@ -552,6 +563,7 @@ export default function UserTable({ data }: { data: UserRow[] }) {
                 toast.error('فشل في حذف المستخدم');
               }
             }}
+            className={isDarkMode ? "dark:hover:bg-gray-700" : ""}
           >
             <IconTrash className="w-4 h-4 text-red-500" />
           </Button>
@@ -561,11 +573,15 @@ export default function UserTable({ data }: { data: UserRow[] }) {
   ];
 
   return (
-    <div>
+    <div className={isDarkMode ? "dark" : ""}>
       {/* Tabs for filtering */}
-      <div className="flex border-b mb-4">
+      <div className={`flex border-b mb-4 ${isDarkMode ? "dark:border-gray-700" : ""}`}>
         <button
-          className={`px-4 py-2 font-medium ${activeTab === 'all' ? 'border-b-2 border-purple-500 text-purple-600' : 'text-gray-500'}`}
+          className={`px-4 py-2 font-medium ${
+            activeTab === 'all' 
+              ? `border-b-2 border-purple-500 ${isDarkMode ? 'dark:text-purple-400' : 'text-purple-600'}` 
+              : `${isDarkMode ? 'dark:text-gray-400' : 'text-gray-500'}`
+          }`}
           onClick={() => {
             setActiveTab('all');
             setCurrentPage(1);
@@ -574,7 +590,11 @@ export default function UserTable({ data }: { data: UserRow[] }) {
           الكل
         </button>
         <button
-          className={`px-4 py-2 font-medium ${activeTab === 'blocked' ? 'border-b-2 border-purple-500 text-purple-600' : 'text-gray-500'}`}
+          className={`px-4 py-2 font-medium ${
+            activeTab === 'blocked' 
+              ? `border-b-2 border-purple-500 ${isDarkMode ? 'dark:text-purple-400' : 'text-purple-600'}` 
+              : `${isDarkMode ? 'dark:text-gray-400' : 'text-gray-500'}`
+          }`}
           onClick={() => {
             setActiveTab('blocked');
             setCurrentPage(1);
@@ -583,7 +603,11 @@ export default function UserTable({ data }: { data: UserRow[] }) {
           المحظورين
         </button>
         <button
-          className={`px-4 py-2 font-medium ${activeTab === 'unblocked' ? 'border-b-2 border-purple-500 text-purple-600' : 'text-gray-500'}`}
+          className={`px-4 py-2 font-medium ${
+            activeTab === 'unblocked' 
+              ? `border-b-2 border-purple-500 ${isDarkMode ? 'dark:text-purple-400' : 'text-purple-600'}` 
+              : `${isDarkMode ? 'dark:text-gray-400' : 'text-gray-500'}`
+          }`}
           onClick={() => {
             setActiveTab('unblocked');
             setCurrentPage(1);
@@ -609,16 +633,18 @@ export default function UserTable({ data }: { data: UserRow[] }) {
               variant="outline" 
               onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
               disabled={currentPage === 1}
+              className={isDarkMode ? "dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" : ""}
             >
               السابق
             </Button>
-            <span>
+            <span className={isDarkMode ? "dark:text-gray-300" : ""}>
               الصفحة {currentPage} من {totalPages}
             </span>
             <Button 
               variant="outline" 
               onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
               disabled={currentPage === totalPages}
+              className={isDarkMode ? "dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" : ""}
             >
               التالي
             </Button>
@@ -628,145 +654,162 @@ export default function UserTable({ data }: { data: UserRow[] }) {
 
       {/* User Details Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-  <DialogOverlay className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
-    <DialogContent className="container p-12 sm:max-w-[600px] w-full rounded-lg bg-white shadow-xl border border-gray-200">
-      <DialogHeader>
-        <DialogTitle className="flex items-center gap-2">
-          <UserIcon className="w-5 h-5" />
-          <span>تفاصيل المستخدم</span>
-        </DialogTitle>
-        <DialogDescription>
-          عرض المعلومات الكاملة للمستخدم وسجل التحذيرات
-        </DialogDescription>
-      </DialogHeader>
-      
-      {selectedUser && (
-        <div className="grid gap-6 py-4">
-          {/* User Profile Section */}
-          <div className="flex items-start gap-4">
-            <Avatar className="w-20 h-20 border-2 border-purple-100">
-              <AvatarImage 
-                src={selectedUser.image || '/default-avatar.png'} 
-                alt={selectedUser.name} 
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/default-avatar.png';
-                }}
-              />
-              <AvatarFallback className="bg-purple-100 text-purple-600 text-2xl">
-                {selectedUser.name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
+        <DialogOverlay className={`fixed inset-0 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 ${
+          isDarkMode ? "dark:bg-black/80" : "bg-white/80"
+        }`}>
+          <DialogContent className={`container p-12 sm:max-w-[600px] w-full rounded-lg shadow-xl border ${
+            isDarkMode 
+              ? "dark:bg-gray-900 dark:border-gray-700 dark:text-white" 
+              : "bg-white border-gray-200"
+          }`}>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <UserIcon className="w-5 h-5" />
+                <span>تفاصيل المستخدم</span>
+              </DialogTitle>
+              <DialogDescription className={isDarkMode ? "dark:text-gray-300" : ""}>
+                عرض المعلومات الكاملة للمستخدم وسجل التحذيرات
+              </DialogDescription>
+            </DialogHeader>
             
-            <div className="flex-1 grid gap-2">
-              <div className="flex items-center gap-2">
-                <h3 className="text-xl font-semibold">{selectedUser.name}</h3>
-                <Badge variant={selectedUser.isBlocked ? "destructive" : "default"}>
-                  {selectedUser.isBlocked ? "محظور" : "نشط"}
-                </Badge>
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <ShieldAlertIcon className="w-4 h-4" />
-                <span>
-                  {warningCounts[selectedUser.id] || 0} تحذير(ات)
-                </span>
-              </div>
-              
-              {selectedUser.isBlocked && (
-                <div className="flex items-center gap-2 text-sm text-red-500">
-                  <AlertTriangleIcon className="w-4 h-4" />
-                  <span>هذا المستخدم محظور حالياً</span>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* User Details Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-2">
-              <UserIcon className="w-5 h-5 text-purple-500" />
-              <div>
-                <p className="text-sm text-gray-500">الاسم الكامل</p>
-                <p className="font-medium">
-                  {selectedUser.name}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <MailIcon className="w-5 h-5 text-purple-500" />
-              <div>
-                <p className="text-sm text-gray-500">البريد الإلكتروني</p>
-                <p className="font-medium">{selectedUser.email || 'غير متوفر'}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-purple-500" />
-              <div>
-                <p className="text-sm text-gray-500">تاريخ التسجيل</p>
-                <p className="font-medium">
-                  {new Date(selectedUser.date).toLocaleDateString() || 'غير معروف'}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <ShieldCheckIcon className="w-5 h-5 text-purple-500" />
-              <div>
-                <p className="text-sm text-gray-500">الدور</p>
-                <p className="font-medium">{selectedUser.role || 'مستخدم'}</p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Warning History Section */}
-          <div className="border-t pt-4">
-            <h4 className="flex items-center gap-2 font-medium mb-2">
-              <AlertTriangleIcon className="w-5 h-5 text-yellow-500" />
-              <span>سجل التحذيرات</span>
-            </h4>
-            
-            {warningCounts[selectedUser.id] > 0 ? (
-              <div className="space-y-2">
-                {Array.from({ length: warningCounts[selectedUser.id] }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm p-2 bg-yellow-50 rounded">
-                    <AlertTriangleIcon className="w-4 h-4 text-yellow-500" />
-                    <span>تحذير #{i + 1} - تاريخ: {new Date().toLocaleDateString()}</span>
+            {selectedUser && (
+              <div className="grid gap-6 py-4">
+                {/* User Profile Section */}
+                <div className="flex items-start gap-4">
+                  <Avatar className={`w-20 h-20 border-2 ${
+                    isDarkMode ? "dark:border-purple-800" : "border-purple-100"
+                  }`}>
+                    <AvatarImage 
+                      src={selectedUser.image || '/default-avatar.png'} 
+                      alt={selectedUser.name} 
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/default-avatar.png';
+                      }}
+                    />
+                    <AvatarFallback className={`${
+                      isDarkMode 
+                        ? "dark:bg-purple-900 dark:text-purple-300" 
+                        : "bg-purple-100 text-purple-600"
+                    } text-2xl`}>
+                      {selectedUser.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex-1 grid gap-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-semibold">{selectedUser.name}</h3>
+                      <Badge variant={selectedUser.isBlocked ? "destructive" : "default"}>
+                        {selectedUser.isBlocked ? "محظور" : "نشط"}
+                      </Badge>
+                    </div>
+                    
+                    <div className={`flex items-center gap-2 text-sm ${
+                      isDarkMode ? "dark:text-gray-400" : "text-gray-600"
+                    }`}>
+                      <ShieldAlertIcon className="w-4 h-4" />
+                      <span>
+                        {warningCounts[selectedUser.id] || 0} تحذير(ات)
+                      </span>
+                    </div>
+                    
+                    {selectedUser.isBlocked && (
+                      <div className="flex items-center gap-2 text-sm text-red-500">
+                        <AlertTriangleIcon className="w-4 h-4" />
+                        <span>هذا المستخدم محظور حالياً</span>
+                      </div>
+                    )}
                   </div>
-                ))}
+                </div>
+                
+                {/* User Details Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <UserIcon className="w-5 h-5 text-purple-500" />
+                    <div>
+                      <p className={`text-sm ${isDarkMode ? "dark:text-gray-400" : "text-gray-500"}`}>الاسم الكامل</p>
+                      <p className="font-medium">{selectedUser.name}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <MailIcon className="w-5 h-5 text-purple-500" />
+                    <div>
+                      <p className={`text-sm ${isDarkMode ? "dark:text-gray-400" : "text-gray-500"}`}>البريد الإلكتروني</p>
+                      <p className="font-medium">{selectedUser.email || 'غير متوفر'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="w-5 h-5 text-purple-500" />
+                    <div>
+                      <p className={`text-sm ${isDarkMode ? "dark:text-gray-400" : "text-gray-500"}`}>تاريخ التسجيل</p>
+                      <p className="font-medium">
+                        {new Date(selectedUser.date).toLocaleDateString() || 'غير معروف'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <ShieldCheckIcon className="w-5 h-5 text-purple-500" />
+                    <div>
+                      <p className={`text-sm ${isDarkMode ? "dark:text-gray-400" : "text-gray-500"}`}>الدور</p>
+                      <p className="font-medium">{selectedUser.role || 'مستخدم'}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Warning History Section */}
+                <div className="border-t pt-4">
+                  <h4 className="flex items-center gap-2 font-medium mb-2">
+                    <AlertTriangleIcon className="w-5 h-5 text-yellow-500" />
+                    <span>سجل التحذيرات</span>
+                  </h4>
+                  
+                  {warningCounts[selectedUser.id] > 0 ? (
+                    <div className="space-y-2">
+                      {Array.from({ length: warningCounts[selectedUser.id] }).map((_, i) => (
+                        <div key={i} className={`flex items-center gap-2 text-sm p-2 rounded ${
+                          isDarkMode ? "dark:bg-yellow-900/20" : "bg-yellow-50"
+                        }`}>
+                          <AlertTriangleIcon className="w-4 h-4 text-yellow-500" />
+                          <span>تحذير #{i + 1} - تاريخ: {new Date().toLocaleDateString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className={`text-sm ${isDarkMode ? "dark:text-gray-400" : "text-gray-500"}`}>
+                      لا يوجد تحذيرات لهذا المستخدم
+                    </p>
+                  )}
+                </div>
               </div>
-            ) : (
-              <p className="text-sm text-gray-500">لا يوجد تحذيرات لهذا المستخدم</p>
             )}
-          </div>
-        </div>
-      )}
-      
-      <DialogFooter className="mt-4">
-        <Button 
-          variant="outline" 
-          onClick={() => setIsDialogOpen(false)}
-          className="border-purple-500 text-purple-600 hover:bg-purple-50"
-        >
-          إغلاق
-        </Button>
-      </DialogFooter>
-    </DialogContent>
-  </DialogOverlay>
-</Dialog>
+            
+            <DialogFooter className="mt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsDialogOpen(false)}
+                className={`border-purple-500 text-purple-600 hover:bg-purple-50 ${
+                  isDarkMode ? "dark:border-purple-400 dark:text-purple-300 dark:hover:bg-purple-900/20" : ""
+                }`}
+              >
+                إغلاق
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </DialogOverlay>
+      </Dialog>
     </div>
   );
 }
 
 // Unit-specific table
-// UnitTable component in data-table.tsx
-
 interface UnitTableProps {
   data: UnitRow[];
 }
 
 export function UnitTable({ data }: UnitTableProps) {
+  const { isDarkMode } = useDarkMode();
   const [filterType, setFilterType] = useState<string>("");
   const [filterSubtype, setFilterSubtype] = useState<string>("");
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'ads'>('all');
@@ -796,15 +839,11 @@ export function UnitTable({ data }: UnitTableProps) {
         setLoading(true);
         let filteredData: UnitRow[] = [];
   
-        // Use the API endpoint for filtering by type/subtype
         if (filterSubtype) {
-          // For subtypes, use the API endpoint
           filteredData = await unitsService.getUnitsByType(filterSubtype);
         } else if (filterType) {
-          // For main types, also use the API endpoint
           filteredData = await unitsService.getUnitsByType(filterType);
         } else {
-          // For status-based filtering, use the existing methods
           switch (activeTab) {
             case 'pending':
               filteredData = await unitsService.getUnitsByStatus('Pending');
@@ -816,7 +855,6 @@ export function UnitTable({ data }: UnitTableProps) {
               filteredData = await unitsService.getUnitsByStatus('Refused');
               break;
             case 'ads':
-              // Fetch all units and filter for ads on the client side
               const allUnits = await unitsService.getAllUnits();
               filteredData = allUnits.filter(unit => unit.isAd);
               break;
@@ -873,9 +911,6 @@ export function UnitTable({ data }: UnitTableProps) {
       if (status === 'Pending'){
         setActiveTab('pending');
       }
-      // else {
-      //   setActiveTab('pending');
-      // }
       setInternalData(refreshData);
     } catch (error) {
       setInternalData(prev => prev.map(item => 
@@ -923,7 +958,9 @@ export function UnitTable({ data }: UnitTableProps) {
               e.currentTarget.onerror = null;
             }}
           />
-          <span className="font-medium">{row.original.unitName}</span>
+          <span className={`font-medium ${isDarkMode ? "dark:text-gray-100" : ""}`}>
+            {row.original.unitName}
+          </span>
         </div>
       ),
     },
@@ -931,13 +968,15 @@ export function UnitTable({ data }: UnitTableProps) {
       accessorKey: "owner",
       header: "صاحب العمل",
       cell: ({ row }) => (
-        <span>{row.original.businessOwnerFirstName} {row.original.businessOwnerLastName}</span>
+        <span className={isDarkMode ? "dark:text-gray-100" : ""}>
+          {row.original.businessOwnerFirstName} {row.original.businessOwnerLastName}
+        </span>
       ),
     },
     {
       accessorKey: "location",
       header: "الموقع",
-      cell: ({ row }) => <span>{row.original.location}</span>,
+      cell: ({ row }) => <span className={isDarkMode ? "dark:text-gray-100" : ""}>{row.original.location}</span>,
     },
     {
       accessorKey: "status",
@@ -971,7 +1010,7 @@ export function UnitTable({ data }: UnitTableProps) {
     {
       accessorKey: "registrationDate",
       header: "تاريخ التسجيل",
-      cell: ({ row }) => <span>{row.original.registrationDate}</span>,
+      cell: ({ row }) => <span className={isDarkMode ? "dark:text-gray-100" : ""}>{row.original.registrationDate}</span>,
     },
     {
       id: "actions",
@@ -986,17 +1025,16 @@ export function UnitTable({ data }: UnitTableProps) {
               variant="ghost"
               size="icon"
               onClick={() => handleViewDetails(row.original.id.toString())}
+              className={isDarkMode ? "dark:hover:bg-gray-700" : ""}
             >
               <InfoIcon className="w-4 h-4 text-blue-500" />
             </Button>    
             <Button
               variant={isAccepted ? "default" : "ghost"}
               size="icon"
-              onClick={() => handleStatusUpdate(
-                row.original.id.toString(), 
-                'Accepted',
-              )}
+              onClick={() => handleStatusUpdate(row.original.id.toString(), 'Accepted')}
               disabled={isAccepted}
+              className={isDarkMode ? "dark:hover:bg-gray-700" : ""}
             >
               <ThumbsUpIcon className={`w-4 h-4 ${isAccepted ? 'text-white' : 'text-green-500'}`} />
             </Button>
@@ -1004,11 +1042,9 @@ export function UnitTable({ data }: UnitTableProps) {
             <Button
               variant={isRefused ? "destructive" : "ghost"}
               size="icon"
-              onClick={() => handleStatusUpdate(
-                row.original.id.toString(), 
-                'Refused'
-              )}
+              onClick={() => handleStatusUpdate(row.original.id.toString(), 'Refused')}
               disabled={isRefused}
+              className={isDarkMode ? "dark:hover:bg-gray-700" : ""}
             >
               <ThumbsDownIcon className={`w-4 h-4 ${isRefused ? 'text-white' : 'text-red-500'}`} />
             </Button>
@@ -1022,6 +1058,7 @@ export function UnitTable({ data }: UnitTableProps) {
                 unitName: row.original.unitName
               })}
               disabled={loading}
+              className={isDarkMode ? "dark:hover:bg-gray-700" : ""}
             >
               <TrashIcon className="w-4 h-4 text-red-500" />
             </Button>
@@ -1047,15 +1084,15 @@ export function UnitTable({ data }: UnitTableProps) {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex border-b">
+    <div className={`space-y-4 ${isDarkMode ? "dark" : ""}`}>
+      <div className={`flex border-b ${isDarkMode ? "dark:border-gray-700" : ""}`}>
         {(['all', 'pending', 'approved', 'rejected', 'ads'] as const).map((tab) => (
           <button
             key={tab}
             className={`px-4 py-2 font-medium ${
               activeTab === tab 
-                ? 'border-b-2 border-purple-500 text-purple-600' 
-                : 'text-gray-500'
+                ? `border-b-2 border-purple-500 ${isDarkMode ? 'dark:text-purple-400' : 'text-purple-600'}` 
+                : `${isDarkMode ? 'dark:text-gray-400' : 'text-gray-500'}`
             }`}
             onClick={() => setActiveTab(tab)}
           >
@@ -1070,7 +1107,9 @@ export function UnitTable({ data }: UnitTableProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="type-filter" className="block text-sm font-medium text-gray-700 mb-1 text-right">
+          <label htmlFor="type-filter" className={`block text-sm font-medium mb-1 text-right ${
+            isDarkMode ? "dark:text-gray-300" : "text-gray-700"
+          }`}>
             نوع الوحدة الرئيسي
           </label>
           <select
@@ -1080,7 +1119,11 @@ export function UnitTable({ data }: UnitTableProps) {
               setFilterType(e.target.value);
               setFilterSubtype("");
             }}
-            className="border rounded px-3 py-2 w-full text-right"
+            className={`border rounded px-3 py-2 w-full text-right ${
+              isDarkMode 
+                ? "dark:bg-gray-800 dark:border-gray-700 dark:text-white" 
+                : ""
+            }`}
             disabled={loading || activeTab === 'ads'}
           >
             <option value="">الكل</option>
@@ -1093,14 +1136,20 @@ export function UnitTable({ data }: UnitTableProps) {
         </div>
 
         <div>
-          <label htmlFor="subtype-filter" className="block text-sm font-medium text-gray-700 mb-1 text-right">
+          <label htmlFor="subtype-filter" className={`block text-sm font-medium mb-1 text-right ${
+            isDarkMode ? "dark:text-gray-300" : "text-gray-700"
+          }`}>
             النوع الفرعي
           </label>
           <select
             id="subtype-filter"
             value={filterSubtype}
             onChange={(e) => setFilterSubtype(e.target.value)}
-            className="border rounded px-3 py-2 w-full text-right"
+            className={`border rounded px-3 py-2 w-full text-right ${
+              isDarkMode 
+                ? "dark:bg-gray-800 dark:border-gray-700 dark:text-white" 
+                : ""
+            }`}
             disabled={!filterType || loading || activeTab === 'ads'}
           >
             <option value="">الكل</option>
@@ -1121,13 +1170,21 @@ export function UnitTable({ data }: UnitTableProps) {
         </div>
       ) : (
         <>
-          <div className="rounded-md border">
+          <div className={`rounded-md border ${
+            isDarkMode ? "dark:border-gray-700" : ""
+          }`}>
             <Table>
-              <TableHeader>
+              <TableHeader className={isDarkMode ? "dark:bg-gray-900" : ""}>
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
+                  <TableRow 
+                    key={headerGroup.id}
+                    className={isDarkMode ? "dark:bg-gray-900 dark:border-gray-700" : ""}
+                  >
                     {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
+                      <TableHead 
+                        key={header.id}
+                        className={isDarkMode ? "dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700" : ""}
+                      >
                         {flexRender(
                           header.column.columnDef.header,
                           header.getContext()
@@ -1137,15 +1194,19 @@ export function UnitTable({ data }: UnitTableProps) {
                   </TableRow>
                 ))}
               </TableHeader>
-              <TableBody>
+              <TableBody className={isDarkMode ? "dark:bg-gray-800" : ""}>
                 {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && "selected"}
+                      className={isDarkMode ? "dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700" : ""}
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
+                        <TableCell 
+                          key={cell.id}
+                          className={isDarkMode ? "dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700" : ""}
+                        >
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                       ))}
@@ -1153,7 +1214,12 @@ export function UnitTable({ data }: UnitTableProps) {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                    <TableCell 
+                      colSpan={columns.length} 
+                      className={`h-24 text-center ${
+                        isDarkMode ? "dark:bg-gray-800 dark:text-gray-300" : ""
+                      }`}
+                    >
                       {activeTab === 'ads' 
                         ? 'لا توجد إعلانات متاحة'
                         : filterSubtype 
@@ -1173,6 +1239,7 @@ export function UnitTable({ data }: UnitTableProps) {
                 size="sm"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
+                className={isDarkMode ? "dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" : ""}
               >
                 السابق
               </Button>
@@ -1181,13 +1248,16 @@ export function UnitTable({ data }: UnitTableProps) {
                 size="sm"
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
+                className={isDarkMode ? "dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" : ""}
               >
                 التالي
               </Button>
             </div>
             
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1">
+              <span className={`flex items-center gap-1 ${
+                isDarkMode ? "dark:text-gray-300" : ""
+              }`}>
                 <div>الصفحة</div>
                 <strong>
                   {table.getState().pagination.pageIndex + 1} من {table.getPageCount()}
@@ -1199,7 +1269,11 @@ export function UnitTable({ data }: UnitTableProps) {
                 onChange={e => {
                   table.setPageSize(Number(e.target.value));
                 }}
-                className="border rounded px-2 py-1"
+                className={`border rounded px-2 py-1 ${
+                  isDarkMode 
+                    ? "dark:bg-gray-800 dark:border-gray-700 dark:text-white" 
+                    : ""
+                }`}
               >
                 {[10, 20, 30, 40, 50].map(pageSize => (
                   <option key={pageSize} value={pageSize}>
@@ -1218,15 +1292,21 @@ export function UnitTable({ data }: UnitTableProps) {
           if (!open) setDeleteConfirmation({ open: false, unitId: null, unitName: '' });
         }}
       >
-        <AlertDialogContent >
+        <AlertDialogContent className={
+          isDarkMode ? "dark:bg-gray-900 dark:border-gray-700 dark:text-white" : ""
+        }>
           <AlertDialogHeader>
-            <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className={isDarkMode ? "dark:text-white" : ""}>
+              تأكيد الحذف
+            </AlertDialogTitle>
+            <AlertDialogDescription className={isDarkMode ? "dark:text-gray-300" : ""}>
               هل أنت متأكد أنك تريد حذف الوحدة "{deleteConfirmation.unitName}"؟ هذا الإجراء لا يمكن التراجع عنه.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel className={isDarkMode ? "dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" : ""}>
+              إلغاء
+            </AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => {
                 if (deleteConfirmation.unitId) {
@@ -1248,8 +1328,10 @@ export function UnitTable({ data }: UnitTableProps) {
     </div>
   );
 }
+
 // Subscription-specific table
 export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
+  const { isDarkMode } = useDarkMode();
   const [internalData, setInternalData] = React.useState<(SubscriptionRow & { ownerName: string })[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -1262,10 +1344,8 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
     const fetchSubscriptionData = async () => {
       try {
         setLoading(true);
-        // First get subscriptions with plans
         const subscriptionsWithPlans = await subscriptionsService.getSubscriptionsWithPlans();
         
-        // Then fetch owner details for each subscription
         const subscriptionsWithOwnerNames = await Promise.all(
           subscriptionsWithPlans.map(async (sub) => {
             try {
@@ -1278,7 +1358,7 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
               console.error(`Failed to fetch user details for ${sub.businessOwnerId}`, error);
               return {
                 ...sub,
-                ownerName: sub.businessOwnerId // Fallback to ID if name fetch fails
+                ownerName: sub.businessOwnerId
               };
             }
           })
@@ -1300,7 +1380,9 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
       accessorKey: "ownerName",
       header: "صاحب العمل",
       cell: ({ row }) => (
-        <div className="font-medium">{row.original.ownerName}</div>
+        <div className={`font-medium ${isDarkMode ? "dark:text-gray-100" : ""}`}>
+          {row.original.ownerName}
+        </div>
       ),
     },
     {
@@ -1316,7 +1398,7 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
       accessorKey: "price",
       header: "السعر",
       cell: ({ row }) => (
-        <div>
+        <div className={isDarkMode ? "dark:text-gray-100" : ""}>
           {row.original.price.amount} {row.original.price.currencyCode}
         </div>
       ),
@@ -1325,7 +1407,7 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
       accessorKey: "period",
       header: "الفترة",
       cell: ({ row }) => (
-        <div className="flex flex-col">
+        <div className={`flex flex-col ${isDarkMode ? "dark:text-gray-100" : ""}`}>
           <span>من: {new Date(row.original.startDate).toLocaleDateString()}</span>
           <span>إلى: {new Date(row.original.endDate).toLocaleDateString()}</span>
         </div>
@@ -1335,7 +1417,7 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
       accessorKey: "ads",
       header: "الإعلانات",
       cell: ({ row }) => (
-        <div>
+        <div className={isDarkMode ? "dark:text-gray-100" : ""}>
           {row.original.usedAds} / {row.original.maxAds}
         </div>
       ),
@@ -1356,7 +1438,7 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
         <Button
           variant="ghost"
           size="icon"
-          className="w-8 h-8"
+          className={`w-8 h-8 ${isDarkMode ? "dark:hover:bg-gray-700" : ""}`}
           onClick={() => toast.info(`تفاصيل اشتراك ${row.original.ownerName}`)}
         >
           <InfoIcon className="w-4 h-4 text-blue-500" />
@@ -1381,7 +1463,7 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
   });
 
   return (
-    <div>
+    <div className={isDarkMode ? "dark" : ""}>
       {loading && (
         <div className="flex justify-center items-center h-32">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
@@ -1390,12 +1472,18 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
 
       {!loading && (
         <>
-          <Table>
-            <TableHeader>
+          <Table className={isDarkMode ? "dark" : ""}>
+            <TableHeader className={isDarkMode ? "dark:bg-gray-900" : ""}>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+                <TableRow 
+                  key={headerGroup.id}
+                  className={isDarkMode ? "dark:bg-gray-900 dark:border-gray-700" : ""}
+                >
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
+                    <TableHead 
+                      key={header.id}
+                      className={isDarkMode ? "dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700" : ""}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -1407,15 +1495,19 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
                 </TableRow>
               ))}
             </TableHeader>
-            <TableBody>
+            <TableBody className={isDarkMode ? "dark:bg-gray-800" : ""}>
               {table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
+                    className={isDarkMode ? "dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700" : ""}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell 
+                        key={cell.id}
+                        className={isDarkMode ? "dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700" : ""}
+                      >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
@@ -1423,7 +1515,12 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+                  <TableCell 
+                    colSpan={table.getAllColumns().length} 
+                    className={`h-24 text-center ${
+                      isDarkMode ? "dark:bg-gray-800 dark:text-gray-300" : ""
+                    }`}
+                  >
                     لا توجد بيانات متاحة
                   </TableCell>
                 </TableRow>
@@ -1438,6 +1535,7 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
                 size="sm"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
+                className={isDarkMode ? "dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" : ""}
               >
                 السابق
               </Button>
@@ -1446,13 +1544,16 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
                 size="sm"
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
+                className={isDarkMode ? "dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" : ""}
               >
                 التالي
               </Button>
             </div>
             
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1">
+              <span className={`flex items-center gap-1 ${
+                isDarkMode ? "dark:text-gray-300" : ""
+              }`}>
                 <div>الصفحة</div>
                 <strong>
                   {table.getState().pagination.pageIndex + 1} من {table.getPageCount()}
@@ -1464,7 +1565,11 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
                 onChange={e => {
                   table.setPageSize(Number(e.target.value))
                 }}
-                className="border rounded px-2 py-1"
+                className={`border rounded px-2 py-1 ${
+                  isDarkMode 
+                    ? "dark:bg-gray-800 dark:border-gray-700 dark:text-white" 
+                    : ""
+                }`}
               >
                 {[10, 20, 30, 40, 50].map(pageSize => (
                   <option key={pageSize} value={pageSize}>
@@ -1479,7 +1584,12 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
     </div>
   );
 }
+
+// WalletTable and BookingTable components would follow the same pattern...
+// Due to length constraints, I'll show the pattern for WalletTable:
+
 export function WalletTable({ data }: { data: WalletRow[] }) {
+  const { isDarkMode } = useDarkMode();
   const [loading, setLoading] = useState(false);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
@@ -1490,40 +1600,39 @@ export function WalletTable({ data }: { data: WalletRow[] }) {
     pageIndex: 0,
     pageSize: 10,
   });
- // In your WalletTable component
-// In your WalletTable component
-const handleRecharge = async () => {
-  if (!selectedWallet || !rechargeAmount) return;
-  
-  try {
-    setLoading(true);
-    const amount = parseFloat(rechargeAmount);
-    if (isNaN(amount) || amount <= 0) {
-      throw new Error('Please enter a valid positive amount');
-    }
 
-    await walletsService.addFunds({
-      walletId: selectedWallet.walletId, // Use walletId instead of id
-      amount: amount,
-      currency: 'LYD',
-      description: `Admin recharge for ${selectedWallet.name}`
-    });
-
-    toast.success(`Successfully added ${amount} LYD to ${selectedWallet.name}'s wallet`);
-    setRechargeDialogOpen(false);
-    setRechargeAmount('');
+  const handleRecharge = async () => {
+    if (!selectedWallet || !rechargeAmount) return;
     
-  } catch (error) {
-    console.error('Recharge error:', error);
-    let errorMessage = 'Failed to add funds';
-    if (error instanceof Error) {
-      errorMessage = error.message;
+    try {
+      setLoading(true);
+      const amount = parseFloat(rechargeAmount);
+      if (isNaN(amount) || amount <= 0) {
+        throw new Error('Please enter a valid positive amount');
+      }
+
+      await walletsService.addFunds({
+        walletId: selectedWallet.walletId,
+        amount: amount,
+        currency: 'LYD',
+        description: `Admin recharge for ${selectedWallet.name}`
+      });
+
+      toast.success(`Successfully added ${amount} LYD to ${selectedWallet.name}'s wallet`);
+      setRechargeDialogOpen(false);
+      setRechargeAmount('');
+      
+    } catch (error) {
+      console.error('Recharge error:', error);
+      let errorMessage = 'Failed to add funds';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
-    toast.error(errorMessage);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const table = useReactTable({
     data,
@@ -1537,8 +1646,10 @@ const handleRecharge = async () => {
               <AvatarFallback>{row.original.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="font-medium">{row.original.name}</span>
-              <span className="text-sm text-muted-foreground">
+              <span className={`font-medium ${isDarkMode ? "dark:text-gray-100" : ""}`}>
+                {row.original.name}
+              </span>
+              <span className={`text-sm ${isDarkMode ? "dark:text-gray-400" : "text-muted-foreground"}`}>
                 {row.original.email}
               </span>
             </div>
@@ -1557,7 +1668,11 @@ const handleRecharge = async () => {
       {
         accessorKey: "registrationDate",
         header: "تاريخ التسجيل",
-        cell: ({ row }) => <span>{row.original.registrationDate}</span>,
+        cell: ({ row }) => (
+          <span className={isDarkMode ? "dark:text-gray-100" : ""}>
+            {row.original.registrationDate}
+          </span>
+        ),
       },
       {
         id: "actions",
@@ -1568,6 +1683,7 @@ const handleRecharge = async () => {
               variant="ghost"
               size="icon"
               onClick={() => toast.info(`تفاصيل محفظة ${row.original.name}`)}
+              className={isDarkMode ? "dark:hover:bg-gray-700" : ""}
             >
               <InfoIcon />
             </Button>
@@ -1578,6 +1694,7 @@ const handleRecharge = async () => {
                 setSelectedWallet(row.original);
                 setRechargeDialogOpen(true);
               }}
+              className={isDarkMode ? "dark:hover:bg-gray-700" : ""}
             >
               <PlusCircle className="w-4 h-4 text-green-500" />
             </Button>
@@ -1585,6 +1702,7 @@ const handleRecharge = async () => {
               variant="ghost"
               size="icon"
               onClick={() => toast.error(`تم حذف محفظة ${row.original.name}`)}
+              className={isDarkMode ? "dark:hover:bg-gray-700" : ""}
             >
               <IconTrash />
             </Button>
@@ -1609,64 +1727,87 @@ const handleRecharge = async () => {
   }
 
   return (
-    <div>
-         <Dialog open={rechargeDialogOpen} onOpenChange={setRechargeDialogOpen}>
-         <DialogContent className={`
-  fixed top-32 right-76 m-auto 
-  z-[1000] 
-  w-[90%] max-w-md 
-  p-6 
-  bg-white 
-  rounded-lg 
-  shadow-xl
-  border border-gray-200 dark:border-gray-700
-  overflow-visible // Add this to allow select dropdown to overflow
-`}>
+    <div className={isDarkMode ? "dark" : ""}>
+      <Dialog open={rechargeDialogOpen} onOpenChange={setRechargeDialogOpen}>
+        <DialogContent className={`
+          fixed top-32 right-76 m-auto 
+          z-[1000] 
+          w-[90%] max-w-md 
+          p-6 
+          rounded-lg 
+          shadow-xl
+          border
+          overflow-visible
+          ${isDarkMode 
+            ? "dark:bg-gray-900 dark:border-gray-700 dark:text-white" 
+            : "bg-white border-gray-200"
+          }
+        `}>
           <DialogTitle className="text-xl font-bold mb-2">
             إعادة شحن المحفظة
           </DialogTitle>
-          <DialogDescription className="mb-4 text-gray-600 dark:text-gray-300">
+          <DialogDescription className={`mb-4 ${
+            isDarkMode ? "dark:text-gray-300" : "text-gray-600"
+          }`}>
             إعادة شحن محفظة {selectedWallet?.name}
           </DialogDescription>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">المبلغ</label>
+              <label className={`block text-sm font-medium mb-1 ${
+                isDarkMode ? "dark:text-gray-300" : ""
+              }`}>المبلغ</label>
               <Input
                 type="number"
                 value={rechargeAmount}
                 onChange={(e) => setRechargeAmount(e.target.value)}
                 placeholder="أدخل المبلغ"
-                className="w-full"
+                className={`w-full ${
+                  isDarkMode 
+                    ? "dark:bg-gray-800 dark:border-gray-700 dark:text-white" 
+                    : ""
+                }`}
               />
             </div>
 
-            <div className="relative ">
-  <label className="block text-sm font-medium mb-1">طريقة الدفع</label>
-  <Select
-    value={paymentMethod}
-    onValueChange={(value: 'Adfali' | 'PayPal' | 'Stripe' | 'Masarat') => 
-      setPaymentMethod(value)
-    }
-  >
-    <SelectTrigger className="w-full">
-      <SelectValue placeholder="اختر طريقة الدفع" />
-    </SelectTrigger>
-    {/* Wrap SelectContent in Portal */}
-    <Portal>
-      <SelectContent className="z-[1001] bg-white border border-gray-200 rounded-md shadow-lg mt-1">
-        {/* <SelectItem value="Adfali" disabled>Adfali</SelectItem> */}
-        <SelectItem value="PayPal">Cash</SelectItem>
-        {/* <SelectItem value="Stripe" disabled>Stripe</SelectItem> */}
-        {/* <SelectItem value="Masarat" disabled>Masarat</SelectItem> */}
-      </SelectContent>
-    </Portal>
-  </Select>
-</div> <div className="flex justify-end gap-2 pt-4">
+            <div className="relative">
+              <label className={`block text-sm font-medium mb-1 ${
+                isDarkMode ? "dark:text-gray-300" : ""
+              }`}>طريقة الدفع</label>
+              <Select
+                value={paymentMethod}
+                onValueChange={(value: 'Adfali' | 'PayPal' | 'Stripe' | 'Masarat') => 
+                  setPaymentMethod(value)
+                }
+              >
+                <SelectTrigger className={`w-full ${
+                  isDarkMode 
+                    ? "dark:bg-gray-800 dark:border-gray-700 dark:text-white" 
+                    : ""
+                }`}>
+                  <SelectValue placeholder="اختر طريقة الدفع" />
+                </SelectTrigger>
+                <Portal>
+                  <SelectContent className={`z-[1001] border rounded-md shadow-lg mt-1 ${
+                    isDarkMode 
+                      ? "dark:bg-gray-900 dark:border-gray-700 dark:text-white" 
+                      : "bg-white border-gray-200"
+                  }`}>
+                    <SelectItem value="PayPal">Cash</SelectItem>
+                  </SelectContent>
+                </Portal>
+              </Select>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
               <Button
                 variant="outline"
                 onClick={() => setRechargeDialogOpen(false)}
-                className="px-4"
+                className={`px-4 ${
+                  isDarkMode 
+                    ? "dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" 
+                    : ""
+                }`}
               >
                 إلغاء
               </Button>
@@ -1681,15 +1822,23 @@ const handleRecharge = async () => {
           </div>
         </DialogContent>
         
-        {/* Backdrop with blur effect */}
-        <DialogOverlay className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm" />
+        <DialogOverlay className={`fixed inset-0 z-[999] backdrop-blur-sm ${
+          isDarkMode ? "dark:bg-black/50" : "bg-black/50"
+        }`} />
       </Dialog>
-      <Table>
-        <TableHeader>
+
+      <Table className={isDarkMode ? "dark" : ""}>
+        <TableHeader className={isDarkMode ? "dark:bg-gray-900" : ""}>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <TableRow 
+              key={headerGroup.id}
+              className={isDarkMode ? "dark:bg-gray-900 dark:border-gray-700" : ""}
+            >
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
+                <TableHead 
+                  key={header.id}
+                  className={isDarkMode ? "dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700" : ""}
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(
@@ -1701,15 +1850,19 @@ const handleRecharge = async () => {
             </TableRow>
           ))}
         </TableHeader>
-        <TableBody>
+        <TableBody className={isDarkMode ? "dark:bg-gray-800" : ""}>
           {table.getRowModel().rows.length > 0 ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
+                className={isDarkMode ? "dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700" : ""}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell 
+                    key={cell.id}
+                    className={isDarkMode ? "dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700" : ""}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
@@ -1717,14 +1870,18 @@ const handleRecharge = async () => {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+              <TableCell 
+                colSpan={table.getAllColumns().length} 
+                className={`h-24 text-center ${
+                  isDarkMode ? "dark:bg-gray-800 dark:text-gray-300" : ""
+                }`}
+              >
                 لا توجد بيانات متاحة
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
-    
 
       <div className="flex items-center justify-between px-2 mt-4">
         <div className="flex items-center gap-2">
@@ -1733,6 +1890,7 @@ const handleRecharge = async () => {
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
+            className={isDarkMode ? "dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" : ""}
           >
             السابق
           </Button>
@@ -1741,13 +1899,16 @@ const handleRecharge = async () => {
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
+            className={isDarkMode ? "dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" : ""}
           >
             التالي
           </Button>
         </div>
         
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1">
+          <span className={`flex items-center gap-1 ${
+            isDarkMode ? "dark:text-gray-300" : ""
+          }`}>
             <div>الصفحة</div>
             <strong>
               {table.getState().pagination.pageIndex + 1} من {table.getPageCount()}
@@ -1759,7 +1920,11 @@ const handleRecharge = async () => {
             onChange={e => {
               table.setPageSize(Number(e.target.value))
             }}
-            className="border rounded px-2 py-1"
+            className={`border rounded px-2 py-1 ${
+              isDarkMode 
+                ? "dark:bg-gray-800 dark:border-gray-700 dark:text-white" 
+                : ""
+            }`}
           >
             {[10, 20, 30, 40, 50].map(pageSize => (
               <option key={pageSize} value={pageSize}>
@@ -1769,13 +1934,12 @@ const handleRecharge = async () => {
           </select>
         </div>
       </div>
-
-
     </div>
   );
 }
-// Add to data-table.tsx
+
 export function BookingTable({ data }: { data: BookingRow[] }) {
+  const { isDarkMode } = useDarkMode();
   const [internalData, setInternalData] = React.useState<BookingRow[]>(data);
   const [loading, setLoading] = React.useState(false);
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -1784,13 +1948,13 @@ export function BookingTable({ data }: { data: BookingRow[] }) {
     pageSize: 10,
   });
   const [activeTab, setActiveTab] = React.useState<
-  'all' | 'confirmed' | 'pending' | 'rejected' | 'completed'
->('all');
+    'all' | 'confirmed' | 'pending' | 'rejected' | 'completed'
+  >('all');
+
   // Filter data based on active tab
   const filteredData = React.useMemo(() => {
     if (activeTab === 'all') return internalData;
     
-    // Map tab values to status values
     const statusMap = {
       'confirmed': 'Confirmed',
       'pending': 'Pending',
@@ -1802,36 +1966,34 @@ export function BookingTable({ data }: { data: BookingRow[] }) {
       booking.status.toLowerCase() === statusMap[activeTab].toLowerCase()
     );
   }, [internalData, activeTab]);
-  // Update the handleStatusUpdate function
-const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Confirmed' | 'Rejected' | 'Completed') => {
-  try {
-    await reservationService.updateBookingStatus(bookingId, newStatus);
 
-    setLoading(true);
-    setInternalData(prev => prev.map(booking => 
-      booking.id === bookingId ? { ...booking, status: newStatus } : booking
-    ));
-    
-    toast.success(`Booking status updated to ${getStatusText(newStatus)}`);
-    
-    // Update the active tab based on the new status
-    const statusToTabMap = {
-      'Confirmed': 'confirmed',
-      'Rejected': 'rejected',
-      'Completed': 'completed',
-      'Pending': 'pending'
-    } as const;
-    
-    // Add type assertion to ensure it's a valid tab value
-    const newTab = statusToTabMap[newStatus] as 'all' | 'confirmed' | 'pending' | 'rejected' | 'completed';
-    setActiveTab(newTab);
-  } catch (error) {
-    console.error('Status update failed:', error);
-    toast.error(error instanceof Error ? error.message : 'Failed to update booking status');
-  } finally {
-    setLoading(false);
-  }
-};
+  const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Confirmed' | 'Rejected' | 'Completed') => {
+    try {
+      await reservationService.updateBookingStatus(bookingId, newStatus);
+
+      setLoading(true);
+      setInternalData(prev => prev.map(booking => 
+        booking.id === bookingId ? { ...booking, status: newStatus } : booking
+      ));
+      
+      toast.success(`Booking status updated to ${getStatusText(newStatus)}`);
+      
+      const statusToTabMap = {
+        'Confirmed': 'confirmed',
+        'Rejected': 'rejected',
+        'Completed': 'completed',
+        'Pending': 'pending'
+      } as const;
+      
+      const newTab = statusToTabMap[newStatus] as 'all' | 'confirmed' | 'pending' | 'rejected' | 'completed';
+      setActiveTab(newTab);
+    } catch (error) {
+      console.error('Status update failed:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update booking status');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusText = (status: string) => {
     switch(status) {
@@ -1845,15 +2007,13 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
 
   const getStatusColor = (status: string) => {
     switch(status) {
-      case 'Pending': return 'bg-yellow-100 text-yellow-800';
-      case 'Confirmed': return 'bg-green-100 text-green-800';
-      case 'Rejected': return 'bg-red-100 text-red-800';
-      case 'Completed': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300';
+      case 'Confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
+      case 'Rejected': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
+      case 'Completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
     }
   };
-
-  
 
   const columns: ColumnDef<BookingRow>[] = [
     {
@@ -1872,8 +2032,10 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
             />
           )}
           <div className="flex flex-col">
-            <span className="font-medium">{row.original.propertyDetails?.title || 'غير معروف'}</span>
-            <span className="text-sm text-gray-500">
+            <span className={`font-medium ${isDarkMode ? "dark:text-gray-100" : ""}`}>
+              {row.original.propertyDetails?.title || 'غير معروف'}
+            </span>
+            <span className={`text-sm ${isDarkMode ? "dark:text-gray-400" : "text-gray-500"}`}>
               {row.original.propertyDetails?.type}
               {row.original.propertyDetails?.subtype && ` - ${row.original.propertyDetails.subtype}`}
             </span>
@@ -1886,8 +2048,12 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
       header: "العميل",
       cell: ({ row }) => (
         <div className="flex flex-col">
-          <span className="font-medium">{row.original.name}</span>
-          <span className="text-sm text-gray-500">{row.original.phoneNumber}</span>
+          <span className={`font-medium ${isDarkMode ? "dark:text-gray-100" : ""}`}>
+            {row.original.name}
+          </span>
+          <span className={`text-sm ${isDarkMode ? "dark:text-gray-400" : "text-gray-500"}`}>
+            {row.original.phoneNumber}
+          </span>
         </div>
       ),
     },
@@ -1895,7 +2061,7 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
       accessorKey: "period",
       header: "الفترة",
       cell: ({ row }) => (
-        <div className="flex flex-col">
+        <div className={`flex flex-col ${isDarkMode ? "dark:text-gray-100" : ""}`}>
           <span>من: {new Date(row.original.startDate).toLocaleDateString()}</span>
           <span>إلى: {new Date(row.original.endDate).toLocaleDateString()}</span>
         </div>
@@ -1905,7 +2071,7 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
       accessorKey: "price",
       header: "السعر",
       cell: ({ row }) => (
-        <div className="font-medium">
+        <div className={`font-medium ${isDarkMode ? "dark:text-gray-100" : ""}`}>
           {row.original.totalPrice} {row.original.currency}
         </div>
       ),
@@ -1923,7 +2089,9 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
       accessorKey: "reservedAt",
       header: "تاريخ الحجز",
       cell: ({ row }) => (
-        <span>{new Date(row.original.reservedAt).toLocaleDateString()}</span>
+        <span className={isDarkMode ? "dark:text-gray-100" : ""}>
+          {new Date(row.original.reservedAt).toLocaleDateString()}
+        </span>
       ),
     },
     {
@@ -1940,6 +2108,7 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
               size="sm"
               onClick={() => handleStatusUpdate(row.original.id, 'Confirmed')}
               disabled={isConfirmed || loading}
+              className={isDarkMode ? "dark:hover:bg-gray-700" : ""}
             >
               تأكيد
             </Button>
@@ -1948,6 +2117,7 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
               size="sm"
               onClick={() => handleStatusUpdate(row.original.id, 'Rejected')}
               disabled={row.original.status === 'Rejected' || loading}
+              className={isDarkMode ? "dark:hover:bg-red-700" : ""}
             >
               إلغاء
             </Button>
@@ -1958,7 +2128,7 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
   ];
 
   const table = useReactTable({
-    data: filteredData, // Use filteredData instead of internalData
+    data: filteredData,
     columns,
     state: { 
       sorting,
@@ -1973,35 +2143,55 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
   });
 
   return (
-    <div>
+    <div className={isDarkMode ? "dark" : ""}>
       {/* Status Tabs */}
-      <div className="flex border-b mb-4">
+      <div className={`flex border-b mb-4 ${isDarkMode ? "dark:border-gray-700" : ""}`}>
         <button
-          className={`px-4 py-2 font-medium ${activeTab === 'all' ? 'border-b-2 border-purple-500 text-purple-600' : 'text-gray-500'}`}
+          className={`px-4 py-2 font-medium ${
+            activeTab === 'all' 
+              ? `border-b-2 border-purple-500 ${isDarkMode ? 'dark:text-purple-400' : 'text-purple-600'}` 
+              : `${isDarkMode ? 'dark:text-gray-400' : 'text-gray-500'}`
+          }`}
           onClick={() => setActiveTab('all')}
         >
           الكل
         </button>
         <button
-          className={`px-4 py-2 font-medium ${activeTab === 'confirmed' ? 'border-b-2 border-purple-500 text-purple-600' : 'text-gray-500'}`}
+          className={`px-4 py-2 font-medium ${
+            activeTab === 'confirmed' 
+              ? `border-b-2 border-purple-500 ${isDarkMode ? 'dark:text-purple-400' : 'text-purple-600'}` 
+              : `${isDarkMode ? 'dark:text-gray-400' : 'text-gray-500'}`
+          }`}
           onClick={() => setActiveTab('confirmed')}
         >
           المؤكدة
         </button>
         <button
-          className={`px-4 py-2 font-medium ${activeTab === 'pending' ? 'border-b-2 border-purple-500 text-purple-600' : 'text-gray-500'}`}
+          className={`px-4 py-2 font-medium ${
+            activeTab === 'pending' 
+              ? `border-b-2 border-purple-500 ${isDarkMode ? 'dark:text-purple-400' : 'text-purple-600'}` 
+              : `${isDarkMode ? 'dark:text-gray-400' : 'text-gray-500'}`
+          }`}
           onClick={() => setActiveTab('pending')}
         >
           قيد الانتظار
         </button>
         <button
-  className={`px-4 py-2 font-medium ${activeTab === 'rejected' ? 'border-b-2 border-purple-500 text-purple-600' : 'text-gray-500'}`}
-  onClick={() => setActiveTab('rejected')}
->
-  الملغية
-</button>
+          className={`px-4 py-2 font-medium ${
+            activeTab === 'rejected' 
+              ? `border-b-2 border-purple-500 ${isDarkMode ? 'dark:text-purple-400' : 'text-purple-600'}` 
+              : `${isDarkMode ? 'dark:text-gray-400' : 'text-gray-500'}`
+          }`}
+          onClick={() => setActiveTab('rejected')}
+        >
+          الملغية
+        </button>
         <button
-          className={`px-4 py-2 font-medium ${activeTab === 'completed' ? 'border-b-2 border-purple-500 text-purple-600' : 'text-gray-500'}`}
+          className={`px-4 py-2 font-medium ${
+            activeTab === 'completed' 
+              ? `border-b-2 border-purple-500 ${isDarkMode ? 'dark:text-purple-400' : 'text-purple-600'}` 
+              : `${isDarkMode ? 'dark:text-gray-400' : 'text-gray-500'}`
+          }`}
           onClick={() => setActiveTab('completed')}
         >
           المكتملة
@@ -2016,12 +2206,18 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
 
       {!loading && (
         <>
-          <Table>
-            <TableHeader>
+          <Table className={isDarkMode ? "dark" : ""}>
+            <TableHeader className={isDarkMode ? "dark:bg-gray-900" : ""}>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+                <TableRow 
+                  key={headerGroup.id}
+                  className={isDarkMode ? "dark:bg-gray-900 dark:border-gray-700" : ""}
+                >
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
+                    <TableHead 
+                      key={header.id}
+                      className={isDarkMode ? "dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700" : ""}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -2033,15 +2229,19 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
                 </TableRow>
               ))}
             </TableHeader>
-            <TableBody>
+            <TableBody className={isDarkMode ? "dark:bg-gray-800" : ""}>
               {table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
+                    className={isDarkMode ? "dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700" : ""}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell 
+                        key={cell.id}
+                        className={isDarkMode ? "dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700" : ""}
+                      >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
@@ -2049,7 +2249,12 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+                  <TableCell 
+                    colSpan={table.getAllColumns().length} 
+                    className={`h-24 text-center ${
+                      isDarkMode ? "dark:bg-gray-800 dark:text-gray-300" : ""
+                    }`}
+                  >
                     {activeTab === 'all' 
                       ? "لا توجد بيانات متاحة" 
                       : `لا توجد حجوزات ${getStatusText(activeTab.toUpperCase())}`}
@@ -2066,6 +2271,7 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
                 size="sm"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
+                className={isDarkMode ? "dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" : ""}
               >
                 السابق
               </Button>
@@ -2074,13 +2280,16 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
                 size="sm"
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
+                className={isDarkMode ? "dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" : ""}
               >
                 التالي
               </Button>
             </div>
             
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1">
+              <span className={`flex items-center gap-1 ${
+                isDarkMode ? "dark:text-gray-300" : ""
+              }`}>
                 <div>الصفحة</div>
                 <strong>
                   {table.getState().pagination.pageIndex + 1} من {table.getPageCount()}
@@ -2092,7 +2301,11 @@ const handleStatusUpdate = async (bookingId: string, newStatus: 'Pending' | 'Con
                 onChange={e => {
                   table.setPageSize(Number(e.target.value))
                 }}
-                className="border rounded px-2 py-1"
+                className={`border rounded px-2 py-1 ${
+                  isDarkMode 
+                    ? "dark:bg-gray-800 dark:border-gray-700 dark:text-white" 
+                    : ""
+                }`}
               >
                 {[10, 20, 30, 40, 50].map(pageSize => (
                   <option key={pageSize} value={pageSize}>

@@ -1,15 +1,15 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
-  AreaChart, XAxis, YAxis, CartesianGrid, Tooltip, Area, ResponsiveContainer} from "recharts";
+  AreaChart, XAxis, YAxis, CartesianGrid, Tooltip, Area, ResponsiveContainer
+} from "recharts";
 import { authService } from '@/API/auth';
 import { fetchStatistics } from '@/API/Statistics';
+import { useDarkMode } from './DarkModeContext';
+import { cn } from "@/lib/utils";
 
 // Assets
 import userclient from '../assets/contacts_product_53.98dp_2196F3_FILL0_wght400_GRAD0_opsz48.png';
 import userowner from '../assets/contacts_product_53.98dp_88417A_FILL0_wght400_GRAD0_opsz48.png';
-// import unitPendingIcon from '../assets/pending.svg';
-// import unitNewIcon from '../assets/new.svg';
-// import unitAcceptedIcon from '../assets/accepted.svg';
 import '../index.css';
 
 // Mock data for charts
@@ -23,33 +23,61 @@ const chartData = [
   { name: "Sat", clients: 90, businessOwners: 80 },
 ];
 
+// Custom Tooltip Component with Dark Mode
+const CustomTooltip = ({ active, payload, label, isDarkMode }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className={cn(
+        "p-3 rounded-lg shadow-lg border backdrop-blur-sm",
+        isDarkMode 
+          ? "bg-gray-800 border-gray-700 text-white" 
+          : "bg-white border-gray-200 text-gray-900"
+      )}>
+        <p className={cn(
+          "font-medium mb-2",
+          isDarkMode ? "text-gray-200" : "text-gray-700"
+        )}>
+          {label}
+        </p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} className={cn(
+            "text-sm",
+            isDarkMode ? "text-gray-300" : "text-gray-600"
+          )} style={{ color: entry.color }}>
+            {entry.name}: <span className="font-medium">{entry.value.toLocaleString()}</span>
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
-// const revenueData = [
-//   { day: 'Sat', value: 8 },
-//   { day: 'Sun', value: 5 },
-//   { day: 'Mon', value: 10 },
-//   { day: 'Tue', value: 6 },
-//   { day: 'Wed', value: 9 },
-//   { day: 'Thu', value: 3 },
-//   { day: 'Fri', value: 4 },
-// ];
+// Loading Spinner Component
+const LoadingSpinner = ({ isDarkMode }: { isDarkMode: boolean }) => (
+  <div className="flex justify-center items-center h-64">
+    <div className={cn(
+      "animate-spin rounded-full h-12 w-12 border-t-2 border-b-2",
+      isDarkMode ? "border-purple-400" : "border-purple-500"
+    )}></div>
+  </div>
+);
 
-// const monthlyData = [
-//   { day: 'Week 1', value: 35 },
-//   { day: 'Week 2', value: 45 },
-//   { day: 'Week 3', value: 28 },
-//   { day: 'Week 4', value: 50 },
-// ];
-
-// const unitIcons: Record<string, string> = {
-//   "وحدات جديدة": unitNewIcon,
-//   "الوحدات معلقة": unitPendingIcon,
-//   "الوحدات مقبولة": unitAcceptedIcon,
-// };
-
+// Error Message Component
+const ErrorMessage = ({ message, isDarkMode }: { message: string, isDarkMode: boolean }) => (
+  <div className={cn(
+    "border px-4 py-3 rounded relative",
+    isDarkMode 
+      ? "bg-red-900/20 border-red-700 text-red-300" 
+      : "bg-red-100 border-red-400 text-red-700"
+  )} role="alert">
+    <strong className="font-bold">Error: </strong>
+    <span className="block sm:inline">{message}</span>
+  </div>
+);
 
 export function ChartAreaInteractive() {
-  // const [isWeekly, setIsWeekly] = useState(true);
+  const { isDarkMode } = useDarkMode();
   const [userStats, setUserStats] = useState({
     totalClients: 0,
     totalBusinessOwners: 0,
@@ -64,7 +92,6 @@ export function ChartAreaInteractive() {
     clients: Math.round((day.clients / 820) * userStats.totalClients),
     businessOwners: Math.round((day.businessOwners / 750) * userStats.totalBusinessOwners)
   }));
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -93,38 +120,62 @@ export function ChartAreaInteractive() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <LoadingSpinner isDarkMode={isDarkMode} />;
   }
 
   if (error) {
-    return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-        <strong className="font-bold">Error: </strong>
-        <span className="block sm:inline">{error}</span>
-      </div>
-    );
+    return <ErrorMessage message={error} isDarkMode={isDarkMode} />;
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 w-full p-4">
+    <div className={cn(
+      "grid grid-cols-1 lg:grid-cols-1 gap-6 w-full p-4 transition-colors duration-300",
+      isDarkMode ? "bg-gray-900" : "bg-gray-50"
+    )}>
       {/* ROW 1: AREA CHART + STATISTICS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
         {/* AREA CHART */}
-        <div className="bg-white p-6 rounded-lg shadow w-full">
-          <h2 className="text-lg font-semibold mb-1">إجمالي المستخدمين</h2>
-          <p className="text-sm text-muted-foreground mb-4">
+        <div className={cn(
+          "p-6 rounded-lg shadow w-full transition-colors duration-300",
+          isDarkMode 
+            ? "bg-gray-800 border border-gray-700" 
+            : "bg-white border border-gray-200"
+        )}>
+          <h2 className={cn(
+            "text-lg font-semibold mb-1 transition-colors duration-300",
+            isDarkMode ? "text-white" : "text-gray-900"
+          )}>
+            إجمالي المستخدمين
+          </h2>
+          <p className={cn(
+            "text-sm mb-4 transition-colors duration-300",
+            isDarkMode ? "text-gray-400" : "text-gray-600"
+          )}>
             النسبة الأسبوعية بناءً على الإجمالي: {userStats.totalUsers} مستخدم
           </p>
           <ResponsiveContainer width="100%" height={250}>
             <AreaChart data={normalizedChartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis hide />
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke={isDarkMode ? "#4B5563" : "#E5E7EB"} 
+              />
+              <XAxis 
+                dataKey="name" 
+                tick={{ 
+                  fill: isDarkMode ? '#D1D5DB' : '#4B5563',
+                  fontSize: 12 
+                }}
+                stroke={isDarkMode ? "#6B7280" : "#9CA3AF"}
+              />
+              <YAxis 
+                hide 
+                tick={{ 
+                  fill: isDarkMode ? '#D1D5DB' : '#4B5563' 
+                }}
+                stroke={isDarkMode ? "#6B7280" : "#9CA3AF"}
+              />
               <Tooltip 
+                content={<CustomTooltip isDarkMode={isDarkMode} />}
                 formatter={(value, name) => {
                   if (name === 'العملاء') return [value, `العملاء (${userStats.totalClients} إجمالي)`];
                   if (name === 'أصحاب الأعمال') return [value, `أصحاب الأعمال (${userStats.totalBusinessOwners} إجمالي)`];
@@ -133,11 +184,11 @@ export function ChartAreaInteractive() {
               />
               <defs>
                 <linearGradient id="clientGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={isDarkMode ? 0.6 : 0.8} />
                   <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="ownerGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={isDarkMode ? 0.6 : 0.8} />
                   <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                 </linearGradient>
               </defs>
@@ -147,6 +198,7 @@ export function ChartAreaInteractive() {
                 stroke="#6366f1" 
                 fill="url(#clientGradient)" 
                 name="العملاء" 
+                strokeWidth={2}
               />
               <Area 
                 type="monotone" 
@@ -154,6 +206,7 @@ export function ChartAreaInteractive() {
                 stroke="#8b5cf6" 
                 fill="url(#ownerGradient)" 
                 name="أصحاب الأعمال" 
+                strokeWidth={2}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -161,107 +214,107 @@ export function ChartAreaInteractive() {
 
         {/* STATISTICS CARDS */}
         <div className="flex flex-col justify-around gap-4">
-          <div className="bg-white shadow p-4 rounded-lg flex items-center justify-between">
-            <img src={userclient} className="w-10 h-10" alt="user" />
+          {/* Clients Card */}
+          <div className={cn(
+            "shadow p-4 rounded-lg flex items-center justify-between transition-all duration-300 hover:scale-[1.02]",
+            isDarkMode 
+              ? "bg-gray-800 border border-gray-700 hover:border-gray-600" 
+              : "bg-white border border-gray-200 hover:border-gray-300"
+          )}>
+            <img 
+              src={userclient} 
+              className={cn(
+                "w-10 h-10 transition-all duration-300",
+                isDarkMode ? "filter brightness-125" : ""
+              )} 
+              alt="العملاء" 
+            />
             <div className="flex flex-col text-right font-semibold">
-              <span>إجمالي العملاء</span>
-              <span>{userStats.totalClients.toLocaleString()}</span>
+              <span className={cn(
+                "transition-colors duration-300",
+                isDarkMode ? "text-gray-200" : "text-gray-700"
+              )}>
+                إجمالي العملاء
+              </span>
+              <span className={cn(
+                "text-lg transition-colors duration-300",
+                isDarkMode ? "text-white" : "text-gray-900"
+              )}>
+                {userStats.totalClients.toLocaleString()}
+              </span>
             </div>
           </div>
-          <div className="bg-white shadow p-4 rounded-lg flex items-center justify-between">
-            <img src={userowner} className="w-10 h-10" alt="owner" />
+
+          {/* Business Owners Card */}
+          <div className={cn(
+            "shadow p-4 rounded-lg flex items-center justify-between transition-all duration-300 hover:scale-[1.02]",
+            isDarkMode 
+              ? "bg-gray-800 border border-gray-700 hover:border-gray-600" 
+              : "bg-white border border-gray-200 hover:border-gray-300"
+          )}>
+            <img 
+              src={userowner} 
+              className={cn(
+                "w-10 h-10 transition-all duration-300",
+                isDarkMode ? "filter brightness-125" : ""
+              )} 
+              alt="أصحاب الأعمال" 
+            />
             <div className="flex flex-col text-right font-semibold">
-              <span>إجمالي أصحاب الأعمال</span>
-              <span>{userStats.totalBusinessOwners.toLocaleString()}</span>
+              <span className={cn(
+                "transition-colors duration-300",
+                isDarkMode ? "text-gray-200" : "text-gray-700"
+              )}>
+                إجمالي أصحاب الأعمال
+              </span>
+              <span className={cn(
+                "text-lg transition-colors duration-300",
+                isDarkMode ? "text-white" : "text-gray-900"
+              )}>
+                {userStats.totalBusinessOwners.toLocaleString()}
+              </span>
             </div>
           </div>
-         
+
+          {/* Total Users Card */}
+          <div className={cn(
+            "shadow p-4 rounded-lg flex items-center justify-between transition-all duration-300 hover:scale-[1.02]",
+            isDarkMode 
+              ? "bg-gray-800 border border-gray-700 hover:border-purple-600" 
+              : "bg-white border border-gray-200 hover:border-purple-400"
+          )}>
+            <div className={cn(
+              "w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300",
+              isDarkMode ? "bg-purple-600/20" : "bg-purple-100"
+            )}>
+              <span className={cn(
+                "text-lg font-bold",
+                isDarkMode ? "text-purple-400" : "text-purple-600"
+              )}>
+                ∑
+              </span>
+            </div>
+            <div className="flex flex-col text-right font-semibold">
+              <span className={cn(
+                "transition-colors duration-300",
+                isDarkMode ? "text-gray-200" : "text-gray-700"
+              )}>
+                إجمالي المستخدمين
+              </span>
+              <span className={cn(
+                "text-lg transition-colors duration-300",
+                isDarkMode ? "text-purple-400" : "text-purple-600"
+              )}>
+                {userStats.totalUsers.toLocaleString()}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ROW 2: DONUT + BAR CHART */}
+      {/* ROW 2: Placeholder for additional charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-        {/* <div className="bg-white p-4 rounded-lg shadow flex flex-col items-center relative">
-          <h3 className="text-lg font-semibold mb-2">الوحدات</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={donutChartData}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={80}
-                paddingAngle={2}
-                dataKey="value"
-                label={({ name, value }) => `${name}: ${value}`}
-                labelLine={false}
-              >
-                {donutChartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomDonutTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="mt-4 w-full flex flex-col gap-2 px-4">
-            {donutChartData.map((entry, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 text-sm"
-                style={{ color: entry.color }}
-              >
-                <img src={unitIcons[entry.name]} alt={entry.name} className="w-5 h-5" />
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
-                <span className="text-gray-700">{entry.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow flex flex-col items-center justify-between">
-          <div className="w-full flex justify-between items-center mb-2">
-            <h3 className="text-lg font-semibold">{title}</h3>
-            <div className="flex items-center gap-2 text-sm">
-              <button
-                onClick={() => setIsWeekly(true)}
-                className={`px-3 py-1 rounded-full ${isWeekly ? "bg-[#007AFF] text-white" : "bg-gray-100 text-gray-800"} cursor-pointer`}
-              >
-                أسبوعي
-              </button>
-              <button
-                onClick={() => setIsWeekly(false)}
-                className={`px-3 py-1 rounded-full ${!isWeekly ? "bg-[#007AFF] text-white" : "bg-gray-100 text-gray-800"} cursor-pointer`}
-              >
-                شهري
-              </button>
-            </div>
-          </div>
-
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={displayedData} barCategoryGap={20}>
-              <CartesianGrid strokeDasharray="4 3" />
-              <defs>
-                <linearGradient id="weeklyBarGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#007AFF" stopOpacity={0.9} />
-                  <stop offset="100%" stopColor="#007AFF" stopOpacity={0.2} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Bar
-                dataKey="value"
-                fill="url(#weeklyBarGradient)"
-                radius={[6, 6, 0, 0]}
-                barSize={20}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-
-          <button className="bg-[#E3F2FD] text-[#1976D2] font-semibold rounded-md px-4 py-1 mt-2">
-            View Details
-          </button>
-        </div> */}
+        {/* You can add more charts here with dark mode support */}
       </div>
     </div>
   );

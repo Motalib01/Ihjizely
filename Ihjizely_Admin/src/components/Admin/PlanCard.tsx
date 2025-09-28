@@ -13,6 +13,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useDarkMode } from '../DarkModeContext';
+import { cn } from '@/lib/utils';
 
 export interface Plan {
   id: string;
@@ -34,7 +36,7 @@ interface PlanCardProps {
   isAdmin?: boolean;
   onSelect: (planId: string) => void;
   onUpdate: (updatedPlan: Plan) => void;
-  onDelete: (planId: string) => void; // Add this prop
+  onDelete: (planId: string) => void;
 }
 
 export default function PlanCard({ 
@@ -45,6 +47,7 @@ export default function PlanCard({
   onUpdate,
   onDelete 
 }: PlanCardProps) {
+  const { isDarkMode } = useDarkMode();
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editedPlan, setEditedPlan] = useState(plan);
@@ -53,7 +56,6 @@ export default function PlanCard({
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    // Validate important fields
     if (!editedPlan.name.trim()) {
       newErrors.name = "اسم الخطة مطلوب";
     }
@@ -118,7 +120,6 @@ export default function PlanCard({
       [field]: value
     }));
     
-    // Clear error when field changes
     if (errors[field]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -135,7 +136,6 @@ export default function PlanCard({
       return { ...prev, features: newFeatures };
     });
     
-    // Clear feature error
     if (errors[`feature-${index}`]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -162,7 +162,6 @@ export default function PlanCard({
     });
   };
 
-  // Helper function to convert days to a display period
   const getDisplayPeriod = (days: number): string => {
     if (days === 30) return "شهر";
     if (days === 90) return "3 أشهر";
@@ -174,11 +173,15 @@ export default function PlanCard({
   return (
     <>
       <div 
-        className={`border rounded-2xl shadow-xl overflow-hidden transition-all duration-300 relative ${
+        className={cn(
+          "border rounded-2xl shadow-xl overflow-hidden transition-all duration-300 relative",
           isSelected 
-            ? "ring-4 ring-purple-500 scale-[1.02]" 
-            : "hover:shadow-lg"
-        }`}
+            ? "ring-4 scale-[1.02]" 
+            : "hover:shadow-lg",
+          isDarkMode
+            ? isSelected ? "ring-purple-400 bg-gray-800 border-gray-700" : "bg-gray-800 border-gray-700"
+            : isSelected ? "ring-purple-500 bg-white border-gray-200" : "bg-white border-gray-200"
+        )}
       >
         {/* Admin edit and delete buttons */}
         {isAdmin && !isEditing && (
@@ -186,18 +189,28 @@ export default function PlanCard({
             <Button 
               variant="ghost"
               size="icon"
-              className="rounded-full bg-white/80 hover:bg-white"
+              className={cn(
+                "rounded-full transition-colors duration-300",
+                isDarkMode
+                  ? "bg-gray-700/80 hover:bg-gray-600 text-gray-300"
+                  : "bg-white/80 hover:bg-white text-gray-700"
+              )}
               onClick={handleEdit}
             >
-              <PencilIcon className="w-5 h-5 text-gray-700" />
+              <PencilIcon className="w-5 h-5" />
             </Button>
             <Button 
               variant="ghost"
               size="icon"
-              className="rounded-full bg-white/80 hover:bg-white"
+              className={cn(
+                "rounded-full transition-colors duration-300",
+                isDarkMode
+                  ? "bg-gray-700/80 hover:bg-gray-600 text-red-400"
+                  : "bg-white/80 hover:bg-white text-red-600"
+              )}
               onClick={handleDelete}
             >
-              <TrashIcon className="w-5 h-5 text-red-600" />
+              <TrashIcon className="w-5 h-5" />
             </Button>
           </div>
         )}
@@ -211,7 +224,11 @@ export default function PlanCard({
                     type="text"
                     value={editedPlan.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    className={`text-2xl font-bold bg-white/20 rounded px-2 py-1 w-full ${errors.name ? 'border-2 border-red-500' : ''}`}
+                    className={cn(
+                      "text-2xl font-bold rounded px-2 py-1 w-full transition-colors duration-300",
+                      isDarkMode ? "bg-white/20 placeholder-gray-300" : "bg-white/20 placeholder-gray-700",
+                      errors.name ? 'border-2 border-red-500' : ''
+                    )}
                     placeholder="اسم الخطة"
                   />
                   {errors.name && <p className="text-red-300 text-sm mt-1">{errors.name}</p>}
@@ -225,7 +242,10 @@ export default function PlanCard({
                   type="text"
                   value={editedPlan.tagline}
                   onChange={(e) => handleChange('tagline', e.target.value)}
-                  className="mt-1 bg-white/20 rounded px-2 py-1 w-full"
+                  className={cn(
+                    "mt-1 rounded px-2 py-1 w-full transition-colors duration-300",
+                    isDarkMode ? "bg-white/20 placeholder-gray-300" : "bg-white/20 placeholder-gray-700"
+                  )}
                   placeholder="وصف الخطة"
                 />
               ) : (
@@ -238,7 +258,10 @@ export default function PlanCard({
           </div>
         </div>
         
-        <div className="p-6 border-b">
+        <div className={cn(
+          "p-6 border-b transition-colors duration-300",
+          isDarkMode ? "border-gray-700" : "border-gray-200"
+        )}>
           <div className="text-center">
             {isEditing ? (
               <div>
@@ -247,7 +270,11 @@ export default function PlanCard({
                     type="number"
                     value={editedPlan.price}
                     onChange={(e) => handleChange('price', parseFloat(e.target.value) || 0)}
-                    className={`text-4xl font-bold bg-gray-100 rounded px-3 py-2 w-32 text-center ${errors.price ? 'border-2 border-red-500' : ''}`}
+                    className={cn(
+                      "text-4xl font-bold rounded px-3 py-2 w-32 text-center transition-colors duration-300",
+                      isDarkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-gray-900",
+                      errors.price ? 'border-2 border-red-500' : ''
+                    )}
                     step="0.01"
                     min="0"
                   />
@@ -261,7 +288,11 @@ export default function PlanCard({
                     type="number"
                     value={editedPlan.durationInDays}
                     onChange={(e) => handleChange('durationInDays', parseInt(e.target.value) || 0)}
-                    className={`text-lg bg-gray-100 rounded px-2 py-1 w-20 text-center ${errors.durationInDays ? 'border-2 border-red-500' : ''}`}
+                    className={cn(
+                      "text-lg rounded px-2 py-1 w-20 text-center transition-colors duration-300",
+                      isDarkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-gray-900",
+                      errors.durationInDays ? 'border-2 border-red-500' : ''
+                    )}
                     min="1"
                     placeholder="30"
                   />
@@ -276,7 +307,10 @@ export default function PlanCard({
                       type="number"
                       value={editedPlan.maxAds}
                       onChange={(e) => handleChange('maxAds', parseInt(e.target.value) || 0)}
-                      className="text-lg bg-gray-100 rounded px-2 py-1 w-20 text-center"
+                      className={cn(
+                        "text-lg rounded px-2 py-1 w-20 text-center transition-colors duration-300",
+                        isDarkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-gray-900"
+                      )}
                       min="0"
                       placeholder="0"
                     />
@@ -296,7 +330,12 @@ export default function PlanCard({
         </div>
         
         <div className="p-6">
-          <h3 className="font-medium mb-3">المميزات:</h3>
+          <h3 className={cn(
+            "font-medium mb-3 transition-colors duration-300",
+            isDarkMode ? "text-gray-300" : "text-gray-700"
+          )}>
+            المميزات:
+          </h3>
           {errors.features && <p className="text-red-500 text-sm mb-2">{errors.features}</p>}
           
           <ul className="space-y-3">
@@ -313,7 +352,11 @@ export default function PlanCard({
                         type="text"
                         value={feature}
                         onChange={(e) => handleFeatureChange(index, e.target.value)}
-                        className={`flex-1 bg-gray-100 rounded px-2 py-1 ${errors[`feature-${index}`] ? 'border-2 border-red-500' : ''}`}
+                        className={cn(
+                          "flex-1 rounded px-2 py-1 transition-colors duration-300",
+                          isDarkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-gray-900",
+                          errors[`feature-${index}`] ? 'border-2 border-red-500' : ''
+                        )}
                         placeholder="ميزة جديدة"
                       />
                       <Button 
@@ -329,7 +372,12 @@ export default function PlanCard({
                     {errors[`feature-${index}`] && <p className="text-red-500 text-sm mt-1">{errors[`feature-${index}`]}</p>}
                   </div>
                 ) : (
-                  <span>{feature}</span>
+                  <span className={cn(
+                    "transition-colors duration-300",
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  )}>
+                    {feature}
+                  </span>
                 )}
               </li>
             ))}
@@ -338,7 +386,12 @@ export default function PlanCard({
               <li className="flex justify-center mt-4">
                 <Button 
                   variant="outline"
-                  className="text-sm py-1 px-3"
+                  className={cn(
+                    "text-sm py-1 px-3 transition-colors duration-300",
+                    isDarkMode
+                      ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                  )}
                   onClick={addFeature}
                 >
                   + إضافة ميزة
@@ -350,7 +403,12 @@ export default function PlanCard({
           {isEditing ? (
             <div className="flex gap-2 mt-6">
               <Button 
-                className="flex-1 bg-green-600 hover:bg-green-700"
+                className={cn(
+                  "flex-1 transition-colors duration-300 hover:scale-105",
+                  isDarkMode
+                    ? "bg-green-600 hover:bg-green-700 text-white"
+                    : "bg-green-600 hover:bg-green-700 text-white"
+                )}
                 onClick={handleSave}
               >
                 <CheckIcon className="w-4 h-4 mr-2" />
@@ -358,7 +416,12 @@ export default function PlanCard({
               </Button>
               <Button 
                 variant="outline"
-                className="flex-1"
+                className={cn(
+                  "flex-1 transition-colors duration-300 hover:scale-105",
+                  isDarkMode
+                    ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                )}
                 onClick={handleCancel}
               >
                 <XIcon className="w-4 h-4 mr-2" />
@@ -367,11 +430,14 @@ export default function PlanCard({
             </div>
           ) : (
             <Button 
-              className={`w-full mt-6 ${
+              className={cn(
+                "w-full mt-6 transition-colors duration-300 hover:scale-105",
                 isSelected 
-                  ? "bg-purple-600 hover:bg-purple-700" 
-                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              }`}
+                  ? "bg-purple-600 hover:bg-purple-700 text-white" 
+                  : isDarkMode
+                    ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+              )}
               onClick={() => onSelect(plan.id)}
             >
               {isSelected ? "الخطة المختارة" : "اختر هذه الخطة"}
@@ -382,20 +448,41 @@ export default function PlanCard({
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className={cn(
+          "transition-colors duration-300",
+          isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+        )}>
           <AlertDialogHeader>
-            <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className={cn(
+              "transition-colors duration-300",
+              isDarkMode ? "text-white" : "text-gray-900"
+            )}>
+              تأكيد الحذف
+            </AlertDialogTitle>
+            <AlertDialogDescription className={cn(
+              "transition-colors duration-300",
+              isDarkMode ? "text-gray-400" : "text-gray-600"
+            )}>
               هل أنت متأكد من أنك تريد حذف خطة "{plan.name}"؟ هذا الإجراء لا يمكن التراجع عنه.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
+            <AlertDialogCancel className={cn(
+              "transition-colors duration-300",
+              isDarkMode
+                ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                : "border-gray-300 text-gray-700 hover:bg-gray-100"
+            )}>
               إلغاء
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className={cn(
+                "transition-colors duration-300 hover:scale-105",
+                isDarkMode
+                  ? "bg-red-600 hover:bg-red-700 text-white"
+                  : "bg-red-600 hover:bg-red-700 text-white"
+              )}
             >
               حذف
             </AlertDialogAction>
