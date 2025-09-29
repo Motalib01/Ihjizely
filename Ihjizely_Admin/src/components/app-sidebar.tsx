@@ -65,7 +65,7 @@ const data = {
       icon: IconCurrencyDollar,
     },
     {
-      title: "إدارة التقارير",
+      title: "البريد الوارد",
       url: "/Admin/reports",
       icon: IconReport,
     },

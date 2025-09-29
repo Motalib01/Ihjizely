@@ -58,7 +58,7 @@ export const usersService = {
   },
 
   async getUserById(userId: string): Promise<{
-    [x: string]: string; firstName: string; lastName: string 
+    [x: string]: string; firstName: string; lastName: string; phoneNumber: string 
 }> {
     try {
       const token = authService.getAuthToken();
@@ -75,7 +75,9 @@ export const usersService = {
 
       return {
         firstName: response.data.firstName,
-        lastName: response.data.lastName
+        lastName: response.data.lastName,
+        phoneNumber: response.data.phoneNumber,
+      
       };
     } catch (error) {
       if (axios.isAxiosError(error)) {
