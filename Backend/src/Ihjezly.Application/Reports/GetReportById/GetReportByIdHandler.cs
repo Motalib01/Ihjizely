@@ -29,6 +29,7 @@ namespace Ihjezly.Application.Reports.GetReportById
                 report.Id,
                 report.Reason,
                 report.Content,
+                report.Replay,
                 report.CreatedAt,
                 report.User.Id,
                 report.User.FirstName,

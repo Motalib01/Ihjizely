@@ -9,6 +9,7 @@ public sealed record ReportDetailsResponse(
     Guid Id,
     string Reason,
     string Content,
+    string Replay,
     DateTime CreatedAt,
     Guid UserId,
     string FirstName,

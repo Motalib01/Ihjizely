@@ -25,6 +25,7 @@
     <Folder Include="Properties\GetPropertyById\" />
     <Folder Include="Properties\Location\GetSelectableLocations\" />
     <Folder Include="Properties\PropertySearch\" />
+    <Folder Include="Reports\MarkReportAsRead\" />
     <Folder Include="SavedProperties\GetSavedPropertiesForUser\" />
     <Folder Include="Subscriptions\CreateSubscriptionPlan\" />
     <Folder Include="Transactions\AddFunds\" />

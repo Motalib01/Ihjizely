@@ -34,13 +34,18 @@ public sealed class Report : Entity
     public static Report Create( Guid userId, string reason, string content, string replay, bool isRead)
         => new( userId, content,  reason, replay, isRead);
 
-    public void Update(string reason,string content, bool isRead)
+    public void Update(string reason, string content, bool isRead)
     {
-        if (string.IsNullOrWhiteSpace(reason)) throw new ArgumentException("Report reason cannot be empty.");
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ArgumentException("Report reason cannot be empty.");
 
         Reason = reason;
+        Content = content;
+        IsRead = isRead;
+
         RaiseDomainEvent(new ReportUpdatedDomainEvent(Id, UserId, Reason, Content, IsRead));
     }
+
 
     public void AddReplay(string replay)
     {
@@ -53,6 +58,11 @@ public sealed class Report : Entity
         RaiseDomainEvent(new ReportRepliedDomainEvent(Id, UserId, Replay!, repliedAt));
     }
 
+    public void MarkAsRead()
+    {
+        if (IsRead) return;
+        IsRead = true;
+    }
     public void Delete()
     {
         RaiseDomainEvent(new ReportDeletedDomainEvent(Id, UserId));

@@ -1,27 +1,36 @@
 ﻿using Ihjezly.Application.Abstractions.Messaging;
-using Ihjezly.Application.Reports.UpdateReport;
 using Ihjezly.Domain.Abstractions;
 using Ihjezly.Domain.NewFolder;
 using Ihjezly.Domain.Reposrts.Repositories;
 
-internal sealed class UpdateReportHandler : ICommandHandler<UpdateReportCommand>
+namespace Ihjezly.Application.Reports.MarkReportAsRead;
+
+public sealed record MarkReportAsReadCommand(Guid ReportId) : ICommand<Result>;
+
+internal sealed class MarkReportAsReadHandler
+    : ICommandHandler<MarkReportAsReadCommand, Result>
 {
     private readonly IReportRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateReportHandler(IReportRepository repository, IUnitOfWork unitOfWork)
+    public MarkReportAsReadHandler(
+        IReportRepository repository,
+        IUnitOfWork unitOfWork)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> Handle(UpdateReportCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Result>> Handle(
+        MarkReportAsReadCommand request,
+        CancellationToken cancellationToken)
     {
         var report = await _repository.GetByIdAsync(request.ReportId, cancellationToken);
+
         if (report is null)
             return Result.Failure(ReportErrors.NotFound);
 
-        report.Update(request.Reason, request.Content, request.IsRead);
+        report.MarkAsRead(); // domain method in Report entity (recommended)
 
         _repository.Update(report);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

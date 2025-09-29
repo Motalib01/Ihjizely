@@ -3,6 +3,7 @@ using Ihjezly.Application.Reports.CreateReport;
 using Ihjezly.Application.Reports.DeleteReport;
 using Ihjezly.Application.Reports.GetAllReports;
 using Ihjezly.Application.Reports.GetReportById;
+using Ihjezly.Application.Reports.MarkReportAsRead;
 using Ihjezly.Application.Reports.ReplayReport;
 using Ihjezly.Application.Reports.UpdateReport;
 using MediatR;
@@ -76,4 +77,17 @@ public class ReportsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id) =>
         Ok(await _mediator.Send(new DeleteReportCommand(id)));
+
+
+    [HttpPatch("{id}/read")]
+    public async Task<IActionResult> MarkAsRead(Guid id)
+    {
+        var result = await _mediator.Send(new MarkReportAsReadCommand(id));
+
+        if (result.IsFailure)
+            return NotFound(result.Error);
+
+        return NoContent();
+    }
+
 }
