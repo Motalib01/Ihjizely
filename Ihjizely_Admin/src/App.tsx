@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import { Route, Routes, Outlet } from "react-router-dom";
-import "@fontsource/poppins"; // Defaults to weight 400
+import "@fontsource/poppins";
+import { DarkModeProvider, useDarkMode } from "./components/DarkModeContext"; // Import the provider
 
 // 🔒 Protected Layout Component
 import { ProtectedLayout } from "./components/Admin/ProtectedLayout";
@@ -11,21 +12,12 @@ import SubscriptionPlans from "./components/Admin/subscription-plans";
 import Bookings from "./components/Admin/Booking";
 import Locations from "./components/Admin/Locations";
 import Reports from "./components/Admin/Reports";
+import { cn } from "./lib/utils";
 
 // 🚀 Lazy Load Components
 const LoginPage = React.lazy(() => import("./components/Login"));
 const Dashboard = React.lazy(() => import("./components/Admin/Dashboard"));
 const UsersTable = React.lazy(() => import("./components/Admin/Users-table"));
-
-// 🧠 Custom Hook to Preload Components on Hover
-// const usePreloadRoute = () => {
-//   const preload = (path: string) => {
-//     if (path === "/Admin") import("./components/Admin/Dashboard");
-//     if (path === "/Admin/users") import("./components/Admin/Users-table");
-//   };
-
-//   return preload;
-// };
 
 // 🧱 Page Loader Component
 const PageLoader = () => (
@@ -43,96 +35,106 @@ const ProtectedLayoutComponent = () => (
 );
 
 function App() {
-  // const preload = usePreloadRoute();
+  const { isDarkMode } = useDarkMode();
 
   return (
-    <Routes>
-      {/* 🔓 Public Route */}
-      <Route
-        path="/"
-        element={
-          <Suspense fallback={<PageLoader />}>
-            <LoginPage />
-          </Suspense>
-        }
-      />
+    <DarkModeProvider> 
+      
+ 
+      <div className={cn(
+"min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300",      isDarkMode ? "bg-black text-white" : ""
+)}>
+        <Routes>
+          {/* 🔓 Public Route */}
+          <Route
+            path="/"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <LoginPage />
+              </Suspense>
+            }
+          />
 
-      {/* 🛡️ Protected Routes */}
-      <Route element={<ProtectedLayoutComponent />}>
-        <Route
-          path="/Admin"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Dashboard />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/Admin/users"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <UsersTable />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/Admin/units"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Units />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/Admin/reservations"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Bookings />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/Admin/subscriptions"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Subscription />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/Admin/wallets"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <WalletManagement />
-            </Suspense>
-          }
-        />
-<Route
-  path="/Admin/reports"
-  element={
-    <Suspense fallback={<PageLoader />}>
-      <Reports />
-    </Suspense>
-  }
->
-  <Route path=":id" element={null} /> {/* This enables the nested route */}
-</Route>       <Route
-          path="/Admin/Locations"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Locations />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/Admin/subscription-plans"
-          element={
-            <Suspense fallback={<PageLoader />}>
-<SubscriptionPlans />            </Suspense>
-          }
-        />
-      </Route>
-    </Routes>
+          {/* 🛡️ Protected Routes */}
+          <Route element={<ProtectedLayoutComponent />}>
+            <Route
+              path="/Admin"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <Dashboard />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/Admin/users"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <UsersTable />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/Admin/units"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <Units />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/Admin/reservations"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <Bookings />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/Admin/subscriptions"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <Subscription />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/Admin/wallets"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <WalletManagement />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/Admin/reports"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <Reports />
+                </Suspense>
+              }
+            >
+              <Route path=":id" element={null} />
+            </Route>
+            <Route
+              path="/Admin/Locations"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <Locations />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/Admin/subscription-plans"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <SubscriptionPlans />
+                </Suspense>
+              }
+            />
+          </Route>
+        </Routes>
+      </div>
+    </DarkModeProvider>
   );
 }
 

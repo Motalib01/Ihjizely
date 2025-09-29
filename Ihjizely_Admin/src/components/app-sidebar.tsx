@@ -6,8 +6,10 @@ import {
   IconReceipt2,
   IconCurrencyDollar,
   IconMoon,
-  IconLogout2, IconCalendarClock,
-  IconReport, IconLocationPlus
+  IconLogout2, 
+  IconCalendarClock,
+  IconReport, 
+  IconLocationPlus
 } from "@tabler/icons-react";
 import logo from "../assets/ihjzlyapplogo.png";
 import { cn } from "@/lib/utils";
@@ -22,7 +24,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
-import { authService } from '@/API/auth'; // Import your auth service
+import { authService } from '@/API/auth';
+import { useDarkMode } from './DarkModeContext'; // Corrected import path
 
 const data = {
   user: {
@@ -62,7 +65,7 @@ const data = {
       icon: IconCurrencyDollar,
     },
     {
-      title: "إدارة التقارير",
+      title: "البريد الوارد",
       url: "/Admin/reports",
       icon: IconReport,
     },
@@ -71,13 +74,12 @@ const data = {
       url: "/Admin/Locations",
       icon: IconLocationPlus,
     },
-   
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
-  const [isDarkMode, setIsDarkMode] = React.useState(false);
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [activeItem, setActiveItem] = React.useState<string | null>(
     localStorage.getItem("activeSidebarItem") || "/Admin"
   );
@@ -88,37 +90,70 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     navigate(url);
   };
 
-  // Handle logout function
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Clear the access token using the auth service
     authService.logout();
-    // Navigate to login page
     navigate('/');
-    // Optional: You might want to clear other localStorage items here
     localStorage.removeItem('activeSidebarItem');
   };
 
   return (
-    <Sidebar collapsible="icon" {...props} className="z-[99999] group-data-[collapsible=icon]:z-[9999999]">
+    <Sidebar 
+      collapsible="icon" 
+      {...props} 
+      className={cn(
+        "z-[99999] group-data-[collapsible=icon]:z-[9999999] transition-colors duration-300",
+        isDarkMode 
+          ? "bg-gray-900 text-white border-gray-700" 
+          : "bg-white text-gray-900 border-gray-200"
+      )}
+    >
       {/* Header Section */}
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex flex-row items-center justify-end group-data-[collapsible=icon]:justify-start group-data-[collapsible=icon]:w-[5rem] w-[20rem] h-11 overflow-hidden transition-all duration-300">
-              <SidebarTrigger />
+            <div className={cn(
+              "flex flex-row items-center justify-end group-data-[collapsible=icon]:justify-start group-data-[collapsible=icon]:w-[5rem] w-[20rem] h-11 overflow-hidden transition-all duration-300",
+              isDarkMode ? "text-white" : "text-gray-700"
+            )}>
+              <SidebarTrigger className={cn(
+                "hover:bg-opacity-10 transition-colors",
+                isDarkMode ? "text-white hover:bg-white" : "text-gray-700 hover:bg-gray-200"
+              )} />
             </div>
 
             {/* Logo and Title */}
             <a
-              href="#"
-              className="flex z-[99999] flex-col items-center justify-center gap-2 w-full h-24 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center"
-            >
-              <img src={logo} className="w-12 h-12 group-data-[collapsible=icon]:!size-9" alt="Logo" />
-              <h1 className="font-bold text-[#5D7285] group-data-[collapsible=icon]:text-sm group-data-[collapsible=icon]:hidden">
-                إحجزلي
-              </h1>
-            </a>
+  href="#"
+  className={cn(
+    "flex z-[99999] flex-col items-center justify-center gap-2 w-full h-24",
+    "group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center",
+    "transition-colors duration-300 rounded-lg mx-2",
+    "hover:bg-opacity-50",
+    isDarkMode 
+      ? "hover:bg-gray-800 text-white" 
+      : "hover:bg-gray-100 text-[#5D7285]"
+  )}
+>
+  <img 
+    src={logo} 
+    className={cn(
+      "w-12 h-12 group-data-[collapsible=icon]:!size-9 transition-all duration-300",
+      "filter drop-shadow-sm",
+      isDarkMode 
+        ? "bg-black   hover:brightness-100 bg-transparent  hover:invert-0" 
+        : "hover:brightness-90"
+    )} 
+    alt="Logo" 
+  />
+  <h1 className={cn(
+    "font-bold transition-colors duration-300 text-sm",
+    "group-data-[collapsible=icon]:hidden",
+    isDarkMode ? "text-gray-200" : "text-gray-700"
+  )}>
+    إحجزلي
+  </h1>
+</a>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -130,7 +165,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem key={index}>
               <SidebarMenuButton
                 asChild
-                className="flex text-[bold] items-center w-full p-3 text-sm font- rounded-lg transition-colors group sidebarcontent"
+                className={cn(
+                  "flex text-[bold] items-center w-full p-3 text-sm font- rounded-lg transition-all duration-300 group sidebarcontent",
+                  isDarkMode ? "hover:bg-gray-750" : "hover:bg-gray-50"
+                )}
               >
                 <a
                   href="#"
@@ -139,13 +177,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     handleItemClick(item.url);
                   }}
                   className={cn(
-                    "flex items-center w-full text-[bold]",
+                    "flex items-center w-full text-[bold] transition-all duration-300",
                     activeItem === item.url
-                      ? "bg-purple-500 text-white"
-                      : "text-gray-700 hover:bg-[#AD46FF] hover:text-white"
+                      ? "bg-purple-500 text-white shadow-lg"
+                      : isDarkMode 
+                        ? "text-gray-300 hover:bg-purple-600 hover:text-white hover:shadow-md" 
+                        : "text-gray-700 hover:bg-[#AD46FF] hover:text-white hover:shadow-md"
                   )}
                 >
-                  <span className="mr-3">{React.createElement(item.icon, { className: "h-5 w-5" })}</span>
+                  <span className="mr-3">
+                    {React.createElement(item.icon, { 
+                      className: cn(
+                        "h-5 w-5 transition-colors duration-300",
+                        activeItem === item.url ? "text-white" : 
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      )
+                    })}
+                  </span>
                   <span className="group-data-[collapsible=icon]:sr-only">{item.title}</span>
                 </a>
               </SidebarMenuButton>
@@ -156,28 +204,42 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       {/* Footer Section */}
       <SidebarFooter className="flex justify-center items-center">
-        <div className="flex flex-col items-start py-3 space-y-2">
+        <div className="flex flex-col items-start py-3 space-y-2 w-full">
           {/* Dark Mode Toggle */}
           <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="flex items-center w-full px-3 py-2 text-sm font- rounded-lg transition-colors group"
+            onClick={toggleDarkMode}
+            className={cn(
+              "flex items-center w-full px-3 py-2 text-sm font- rounded-lg transition-all duration-300 group",
+              isDarkMode 
+                ? "text-gray-300 hover:bg-gray-750" 
+                : "text-gray-700 hover:bg-gray-100"
+            )}
           >
             <div className="flex items-center w-full justify-between group-data-[collapsible=icon]:flex-col">
               <span className="flex items-center">
-                <IconMoon className="h-5 w-5 mr-3" />
-                <span className="group-data-[collapsible=icon]:hidden">الوضع المظلم</span>
+                <IconMoon className={cn(
+                  "h-5 w-5 mr-3 transition-colors duration-300",
+                  isDarkMode ? "text-yellow-300" : "text-gray-600"
+                )} />
+                <span className="group-data-[collapsible=icon]:hidden transition-colors duration-300">
+                  {isDarkMode ? "الوضع المضيء" : "الوضع المظلم"}
+                </span>
               </span>
 
               {/* Toggle Switch */}
               <div
-                className={`relative w-10 h-5 border-2 rounded-full cursor-pointer ${
-                  isDarkMode ? "bg-purple-500" : "bg-gray-300"
-                }`}
+                className={cn(
+                  "relative w-10 h-5 border-2 rounded-full cursor-pointer transition-all duration-300",
+                  isDarkMode 
+                    ? "bg-purple-600 border-purple-600" 
+                    : "bg-gray-300 border-gray-300"
+                )}
               >
                 <div
-                  className={`absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform ${
-                    isDarkMode ? "translate-x-5" : ""
-                  }`}
+                  className={cn(
+                    "absolute top-1/2 w-3 h-3 bg-white rounded-full transition-all duration-300 transform -translate-y-1/2",
+                    isDarkMode ? "translate-x-5 left-1" : "left-1"
+                  )}
                 />
               </div>
             </div>
@@ -186,15 +248,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {/* Logout Button */}
           <SidebarMenuButton
             asChild
-            className="hover:bg-[#667A8A] w-full h-full m-0"
+            className={cn(
+              "w-full h-full m-0 transition-all duration-300",
+              isDarkMode ? "hover:bg-red-900/30" : "hover:bg-red-50"
+            )}
           >
             <a
               href="#"
               onClick={handleLogout}
-              className="flex items-center w-full px-3 py-2 text-sm font- rounded-lg transition-colors hover:bg-[#667A8A]"
+              className={cn(
+                "flex items-center w-full px-3 py-2 text-sm font- rounded-lg transition-all duration-300",
+                isDarkMode 
+                  ? "text-red-300 hover:bg-red-900/30 hover:text-white" 
+                  : "text-red-600 hover:bg-red-50 hover:text-red-700"
+              )}
             >
               <span className="mr-3">
-                <IconLogout2 />
+                <IconLogout2 className={cn(
+                  "transition-colors duration-300",
+                  isDarkMode ? "text-red-300" : "text-red-500"
+                )} />
               </span>
               <span className="group-data-[collapsible=icon]:hidden">تسجيل الخروج</span>
             </a>

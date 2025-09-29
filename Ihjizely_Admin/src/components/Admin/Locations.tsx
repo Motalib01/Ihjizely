@@ -1,4 +1,3 @@
-// locations.tsx
 import React, { useState, useEffect } from 'react';
 import { locationsService } from '@/API/LocationService';
 import { DownloadCloudIcon, MoreVertical } from 'lucide-react';
@@ -12,6 +11,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import { IconLocationPlus, IconTrash } from '@tabler/icons-react';
 import { EditIcon } from 'lucide-react';
 import { DialogHeader, DialogFooter } from '../ui/dialog';
+import { useDarkMode } from '../DarkModeContext';
+import { cn } from '@/lib/utils';
 
 export interface LocationRow {
   id: string;
@@ -31,7 +32,32 @@ type TableDataItem = {
   type: string;
 };
 
+// Loading Component
+const LoadingSpinner = ({ isDarkMode }: { isDarkMode: boolean }) => (
+  <div className={cn(
+    "p-6 flex items-center justify-center h-64 transition-colors duration-300",
+    isDarkMode ? "text-gray-300" : "text-gray-600"
+  )}>
+    <div className={cn(
+      "animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 mr-3",
+      isDarkMode ? "border-purple-400" : "border-purple-500"
+    )}></div>
+    جاري تحميل البيانات...
+  </div>
+);
+
+// Error Component
+const ErrorMessage = ({ error, isDarkMode }: { error: string, isDarkMode: boolean }) => (
+  <div className={cn(
+    "p-6 flex items-center justify-center h-64 transition-colors duration-300",
+    isDarkMode ? "text-red-300" : "text-red-500"
+  )}>
+    {error}
+  </div>
+);
+
 export default function Locations() {
+  const { isDarkMode } = useDarkMode();
   const [locations, setLocations] = useState<LocationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -247,12 +273,26 @@ export default function Locations() {
           {
             accessorKey: "name",
             header: "الحي",
-            cell: ({ row }) => <span>{row.original.name}</span>,
+            cell: ({ row }) => (
+              <span className={cn(
+                "transition-colors duration-300",
+                isDarkMode ? "text-white" : "text-gray-900"
+              )}>
+                {row.original.name}
+              </span>
+            ),
           },
           {
             accessorKey: "state",
             header: "المدينة",
-            cell: ({ row }) => <span>{row.original.state}</span>,
+            cell: ({ row }) => (
+              <span className={cn(
+                "transition-colors duration-300",
+                isDarkMode ? "text-gray-300" : "text-gray-700"
+              )}>
+                {row.original.state}
+              </span>
+            ),
           },
           {
             id: "actions",
@@ -267,15 +307,27 @@ export default function Locations() {
                     variant="ghost"
                     size="icon"
                     onClick={() => openEditModal(location)}
+                    className={cn(
+                      "transition-colors duration-300 hover:scale-110",
+                      isDarkMode 
+                        ? "hover:bg-gray-700 text-blue-400" 
+                        : "hover:bg-gray-100 text-blue-500"
+                    )}
                   >
-                    <EditIcon className="w-4 h-4 text-blue-500" />
+                    <EditIcon className="w-4 h-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => openDeleteDialog(location)}
+                    className={cn(
+                      "transition-colors duration-300 hover:scale-110",
+                      isDarkMode 
+                        ? "hover:bg-gray-700 text-red-400" 
+                        : "hover:bg-gray-100 text-red-500"
+                    )}
                   >
-                    <IconTrash className="w-4 h-4 text-red-500" />
+                    <IconTrash className="w-4 h-4" />
                   </Button>
                 </div>
               );
@@ -288,7 +340,14 @@ export default function Locations() {
           {
             accessorKey: "name",
             header: "المدينة",
-            cell: ({ row }) => <span>{row.original.name}</span>,
+            cell: ({ row }) => (
+              <span className={cn(
+                "transition-colors duration-300",
+                isDarkMode ? "text-white" : "text-gray-900"
+              )}>
+                {row.original.name}
+              </span>
+            ),
           }
         ];
         
@@ -297,19 +356,36 @@ export default function Locations() {
           {
             accessorKey: "name",
             header: "المدينة",
-            cell: ({ row }) => <span>{row.original.name}</span>,
+            cell: ({ row }) => (
+              <span className={cn(
+                "transition-colors duration-300",
+                isDarkMode ? "text-white" : "text-gray-900"
+              )}>
+                {row.original.name}
+              </span>
+            ),
           },
           {
             accessorKey: "citiesDisplay",
             header: "الأحياء",
             cell: ({ row }) => (
-              <div className="text-right">
+              <div className={cn(
+                "text-right transition-colors duration-300",
+                isDarkMode ? "text-gray-300" : "text-gray-700"
+              )}>
                 {row.original.cities?.map((city: string, index: number) => (
                   <span key={city}>
                     {city}
                     {index < (row.original.cities?.length || 0) - 1 && '، '}
                   </span>
-                )) || <span className="text-gray-400">لا توجد أحياء</span>}
+                )) || (
+                  <span className={cn(
+                    "transition-colors duration-300",
+                    isDarkMode ? "text-gray-500" : "text-gray-400"
+                  )}>
+                    لا توجد أحياء
+                  </span>
+                )}
               </div>
             ),
           }
@@ -321,30 +397,48 @@ export default function Locations() {
   };
 
   if (loading) {
-    return <div className="p-6 flex items-center justify-center h-64">جاري تحميل البيانات...</div>;
+    return <LoadingSpinner isDarkMode={isDarkMode} />;
   }
 
   if (error) {
-    return <div className="p-6 flex items-center justify-center h-64 text-red-500">{error}</div>;
+    return <ErrorMessage error={error} isDarkMode={isDarkMode} />;
   }
 
   return (
-    <div className="p-6">
+    <div className={cn(
+      "p-6 min-h-screen transition-colors duration-300",
+      isDarkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
+    )}>
       {/* Add Location Modal */}
       <Dialog open={isAddLocationModalOpen} onOpenChange={setIsAddLocationModalOpen}>
         <DialogPortal>
-          <DialogOverlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[99999]" />
-          <DialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[450px] max-h-[85vh] bg-white p-6 rounded-xl shadow-lg z-[99999] focus:outline-none">
-            <DialogTitle className="text-right text-xl font-bold">
+          <DialogOverlay className={cn(
+            "fixed inset-0 backdrop-blur-sm z-[99999] transition-colors duration-300",
+            isDarkMode ? "bg-black/60" : "bg-black/50"
+          )} />
+          <DialogContent className={cn(
+            "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[450px] max-h-[85vh] p-6 rounded-xl shadow-lg z-[99999] focus:outline-none transition-colors duration-300",
+            isDarkMode ? "bg-gray-800 border border-gray-700" : "bg-white border border-gray-200"
+          )}>
+            <DialogTitle className={cn(
+              "text-right text-xl font-bold transition-colors duration-300",
+              isDarkMode ? "text-white" : "text-gray-900"
+            )}>
               إضافة موقع جديد
             </DialogTitle>
-            <DialogDescription className="text-right text-gray-600 mt-2">
+            <DialogDescription className={cn(
+              "text-right mt-2 transition-colors duration-300",
+              isDarkMode ? "text-gray-400" : "text-gray-600"
+            )}>
               أضف موقع جديد إلى النظام
             </DialogDescription>
 
             <form onSubmit={handleAddLocation} className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label className="text-right block">
+                <Label className={cn(
+                  "text-right block transition-colors duration-300",
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                )}>
                   المدينة
                 </Label>
                 
@@ -355,9 +449,17 @@ export default function Locations() {
                     name="isNewState"
                     checked={formData.isNewState}
                     onChange={handleCheckboxChange}
-                    className="w-4 h-4"
+                    className={cn(
+                      "w-4 h-4 transition-colors duration-300",
+                      isDarkMode 
+                        ? "accent-purple-400 bg-gray-700 border-gray-600" 
+                        : "accent-purple-600 bg-white border-gray-300"
+                    )}
                   />
-                  <Label htmlFor="isNewState" className="text-sm">
+                  <Label htmlFor="isNewState" className={cn(
+                    "text-sm transition-colors duration-300",
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  )}>
                     إضافة مدينة جديدة
                   </Label>
                 </div>
@@ -368,7 +470,12 @@ export default function Locations() {
                     value={formData.state}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-right"
+                    className={cn(
+                      "w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-right transition-colors duration-300",
+                      isDarkMode
+                        ? "bg-gray-700 border-gray-600 text-white focus:ring-purple-400"
+                        : "bg-white border-gray-300 text-gray-900 focus:ring-purple-500"
+                    )}
                   >
                     <option value="">اختر المدينة</option>
                     {uniqueStates.map(state => (
@@ -381,14 +488,22 @@ export default function Locations() {
                     value={formData.newState}
                     onChange={handleInputChange}
                     required
-                    className="text-right"
+                    className={cn(
+                      "text-right transition-colors duration-300",
+                      isDarkMode
+                        ? "bg-gray-700 border-gray-600 text-white"
+                        : "bg-white border-gray-300 text-gray-900"
+                    )}
                     placeholder="أدخل اسم مدينة جديدة"
                   />
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="city" className="text-right block">
+                <Label htmlFor="city" className={cn(
+                  "text-right block transition-colors duration-300",
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                )}>
                   الحي
                 </Label>
                 <Input
@@ -397,13 +512,21 @@ export default function Locations() {
                   value={formData.city}
                   onChange={handleInputChange}
                   required
-                  className="text-right"
+                  className={cn(
+                    "text-right transition-colors duration-300",
+                    isDarkMode
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  )}
                   placeholder="أدخل اسم الحي"
                 />
               </div>
 
               <div className="space-y-2 hidden">
-                <Label htmlFor="country" className="text-right block">
+                <Label htmlFor="country" className={cn(
+                  "text-right block transition-colors duration-300",
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                )}>
                   البلد
                 </Label>
                 <Input
@@ -412,7 +535,12 @@ export default function Locations() {
                   value="Libya"
                   onChange={handleInputChange}
                   required
-                  className="text-right"
+                  className={cn(
+                    "text-right transition-colors duration-300",
+                    isDarkMode
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  )}
                   readOnly
                 />
               </div>
@@ -422,10 +550,21 @@ export default function Locations() {
                   type="button" 
                   variant="outline"
                   onClick={() => setIsAddLocationModalOpen(false)}
+                  className={cn(
+                    "transition-colors duration-300",
+                    isDarkMode
+                      ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                  )}
                 >
                   إلغاء
                 </Button>
-                <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
+                <Button type="submit" className={cn(
+                  "transition-colors duration-300 hover:scale-105",
+                  isDarkMode
+                    ? "bg-purple-600 hover:bg-purple-700 text-white"
+                    : "bg-purple-600 hover:bg-purple-700 text-white"
+                )}>
                   إضافة
                 </Button>
               </div>
@@ -437,18 +576,33 @@ export default function Locations() {
       {/* Edit Location Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogPortal>
-          <DialogOverlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[99999]" />
-          <DialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[450px] max-h-[85vh] bg-white p-6 rounded-xl shadow-lg z-[99999] focus:outline-none">
-            <DialogTitle className="text-right text-xl font-bold">
+          <DialogOverlay className={cn(
+            "fixed inset-0 backdrop-blur-sm z-[99999] transition-colors duration-300",
+            isDarkMode ? "bg-black/60" : "bg-black/50"
+          )} />
+          <DialogContent className={cn(
+            "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[450px] max-h-[85vh] p-6 rounded-xl shadow-lg z-[99999] focus:outline-none transition-colors duration-300",
+            isDarkMode ? "bg-gray-800 border border-gray-700" : "bg-white border border-gray-200"
+          )}>
+            <DialogTitle className={cn(
+              "text-right text-xl font-bold transition-colors duration-300",
+              isDarkMode ? "text-white" : "text-gray-900"
+            )}>
               تعديل الموقع
             </DialogTitle>
-            <DialogDescription className="text-right text-gray-600 mt-2">
+            <DialogDescription className={cn(
+              "text-right mt-2 transition-colors duration-300",
+              isDarkMode ? "text-gray-400" : "text-gray-600"
+            )}>
               تعديل بيانات الموقع
             </DialogDescription>
 
             <form onSubmit={handleEditLocation} className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label className="text-right block">
+                <Label className={cn(
+                  "text-right block transition-colors duration-300",
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                )}>
                   المدينة
                 </Label>
                 
@@ -459,9 +613,17 @@ export default function Locations() {
                     name="isNewState"
                     checked={formData.isNewState}
                     onChange={handleCheckboxChange}
-                    className="w-4 h-4"
+                    className={cn(
+                      "w-4 h-4 transition-colors duration-300",
+                      isDarkMode 
+                        ? "accent-purple-400 bg-gray-700 border-gray-600" 
+                        : "accent-purple-600 bg-white border-gray-300"
+                    )}
                   />
-                  <Label htmlFor="edit-isNewState" className="text-sm">
+                  <Label htmlFor="edit-isNewState" className={cn(
+                    "text-sm transition-colors duration-300",
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  )}>
                     إضافة مدينة جديدة
                   </Label>
                 </div>
@@ -472,7 +634,12 @@ export default function Locations() {
                     value={formData.state}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-right"
+                    className={cn(
+                      "w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-right transition-colors duration-300",
+                      isDarkMode
+                        ? "bg-gray-700 border-gray-600 text-white focus:ring-purple-400"
+                        : "bg-white border-gray-300 text-gray-900 focus:ring-purple-500"
+                    )}
                   >
                     <option value="">اختر المدينة</option>
                     {uniqueStates.map(state => (
@@ -485,14 +652,22 @@ export default function Locations() {
                     value={formData.newState}
                     onChange={handleInputChange}
                     required
-                    className="text-right"
+                    className={cn(
+                      "text-right transition-colors duration-300",
+                      isDarkMode
+                        ? "bg-gray-700 border-gray-600 text-white"
+                        : "bg-white border-gray-300 text-gray-900"
+                    )}
                     placeholder="أدخل اسم مدينة جديدة"
                   />
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-city" className="text-right block">
+                <Label htmlFor="edit-city" className={cn(
+                  "text-right block transition-colors duration-300",
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                )}>
                   الحي
                 </Label>
                 <Input
@@ -501,23 +676,13 @@ export default function Locations() {
                   value={formData.city}
                   onChange={handleInputChange}
                   required
-                  className="text-right"
+                  className={cn(
+                    "text-right transition-colors duration-300",
+                    isDarkMode
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  )}
                   placeholder="أدخل اسم الحي"
-                />
-              </div>
-
-              <div className="space-y-2 hidden">
-                <Label htmlFor="edit-country" className="text-right block">
-                  البلد
-                </Label>
-                <Input
-                  id="edit-country"
-                  name="country"
-                  value="Libya"
-                  onChange={handleInputChange}
-                  required
-                  className="text-right"
-                  readOnly
                 />
               </div>
 
@@ -526,10 +691,21 @@ export default function Locations() {
                   type="button" 
                   variant="outline"
                   onClick={() => setIsEditModalOpen(false)}
+                  className={cn(
+                    "transition-colors duration-300",
+                    isDarkMode
+                      ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                  )}
                 >
                   إلغاء
                 </Button>
-                <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
+                <Button type="submit" className={cn(
+                  "transition-colors duration-300 hover:scale-105",
+                  isDarkMode
+                    ? "bg-purple-600 hover:bg-purple-700 text-white"
+                    : "bg-purple-600 hover:bg-purple-700 text-white"
+                )}>
                   حفظ التغييرات
                 </Button>
               </div>
@@ -541,23 +717,43 @@ export default function Locations() {
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogPortal>
-          <DialogOverlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[99999]" />
-          <DialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[450px] max-h-[85vh] bg-white p-6 rounded-xl shadow-lg z-[99999] focus:outline-none">
+          <DialogOverlay className={cn(
+            "fixed inset-0 backdrop-blur-sm z-[99999] transition-colors duration-300",
+            isDarkMode ? "bg-black/60" : "bg-black/50"
+          )} />
+          <DialogContent className={cn(
+            "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[450px] max-h-[85vh] p-6 rounded-xl shadow-lg z-[99999] focus:outline-none transition-colors duration-300",
+            isDarkMode ? "bg-gray-800 border border-gray-700" : "bg-white border border-gray-200"
+          )}>
             <DialogHeader>
-              <DialogTitle className="text-right text-xl font-bold">
+              <DialogTitle className={cn(
+                "text-right text-xl font-bold transition-colors duration-300",
+                isDarkMode ? "text-white" : "text-gray-900"
+              )}>
                 تأكيد الحذف
               </DialogTitle>
-              <DialogDescription className="text-right text-gray-600 mt-2">
+              <DialogDescription className={cn(
+                "text-right mt-2 transition-colors duration-300",
+                isDarkMode ? "text-gray-400" : "text-gray-600"
+              )}>
                 هل أنت متأكد من رغبتك في حذف الموقع؟
               </DialogDescription>
             </DialogHeader>
 
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg text-right">
+            <div className={cn(
+              "mt-4 p-4 rounded-lg text-right transition-colors duration-300",
+              isDarkMode ? "bg-gray-700 text-gray-300" : "bg-gray-50 text-gray-700"
+            )}>
               {locationToDelete && (
                 <>
                   <p className="font-medium">الحي: {locationToDelete.city}</p>
                   <p className="font-medium">المدينة: {locationToDelete.state}</p>
-                  <p className="text-gray-600 mt-2">هذا الإجراء لا يمكن التراجع عنه.</p>
+                  <p className={cn(
+                    "mt-2 transition-colors duration-300",
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  )}>
+                    هذا الإجراء لا يمكن التراجع عنه.
+                  </p>
                 </>
               )}
             </div>
@@ -567,12 +763,23 @@ export default function Locations() {
                 type="button" 
                 variant="outline"
                 onClick={() => setIsDeleteDialogOpen(false)}
+                className={cn(
+                  "transition-colors duration-300",
+                  isDarkMode
+                    ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                )}
               >
                 إلغاء
               </Button>
               <Button 
                 type="button" 
-                className="bg-red-600 hover:bg-red-700"
+                className={cn(
+                  "transition-colors duration-300 hover:scale-105",
+                  isDarkMode
+                    ? "bg-red-600 hover:bg-red-700 text-white"
+                    : "bg-red-600 hover:bg-red-700 text-white"
+                )}
                 onClick={handleDeleteLocation}
               >
                 حذف
@@ -586,38 +793,62 @@ export default function Locations() {
       <div className="flex flex-col md:flex-col justify-between md:items-center gap-4 mb-6">
         <div className="flex items-center gap-2 justify-between w-full">
           <div>           
-            <h1 className='text-2xl font-bold text-gray-800'>المواقع</h1>
-            <p className="text-gray-600 mt-1">إدارة جميع المواقع في النظام</p>
+            <h1 className={cn(
+              "text-2xl font-bold transition-colors duration-300",
+              isDarkMode ? "text-white" : "text-gray-800"
+            )}>
+              المواقع
+            </h1>
+            <p className={cn(
+              "mt-1 transition-colors duration-300",
+              isDarkMode ? "text-gray-400" : "text-gray-600"
+            )}>
+              إدارة جميع المواقع في النظام
+            </p>
           </div>
           <Button 
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-between gap-2 cursor-pointer"
+            className={cn(
+              "px-4 py-2 rounded-lg flex items-center justify-between gap-2 cursor-pointer transition-all duration-300 hover:scale-105",
+              isDarkMode
+                ? "bg-purple-600 hover:bg-purple-700 text-white"
+                : "bg-purple-600 hover:bg-purple-700 text-white"
+            )}
             onClick={() => setIsAddLocationModalOpen(true)}
           >
             <span>أضف جديد</span>
-            <IconLocationPlus/>
+            <IconLocationPlus className={cn(
+              "transition-colors duration-300",
+              isDarkMode ? "text-white" : "text-white"
+            )}/>
           </Button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 w-full">
-          <button
-            className={`py-2 px-4 font-medium ${activeTab === 'cities' ? 'border-b-2 border-purple-600 text-purple-600' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('cities')}
-          >
-            الأحياء
-          </button>
-          <button
-            className={`py-2 px-4 font-medium ${activeTab === 'states' ? 'border-b-2 border-purple-600 text-purple-600' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('states')}
-          >
-            المدن
-          </button>
-          <button
-            className={`py-2 px-4 font-medium ${activeTab === 'state-cities' ? 'border-b-2 border-purple-600 text-purple-600' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('state-cities')}
-          >
-            المدن مع أحيائها
-          </button>
+        <div className={cn(
+          "flex border-b w-full transition-colors duration-300",
+          isDarkMode ? "border-gray-700" : "border-gray-200"
+        )}>
+          {(['cities', 'states', 'state-cities'] as TabType[]).map((tab) => (
+            <button
+              key={tab}
+              className={cn(
+                "py-2 px-4 font-medium transition-colors duration-300",
+                activeTab === tab 
+                  ? cn(
+                      "border-b-2 text-purple-600",
+                      isDarkMode ? "border-purple-400 text-purple-400" : "border-purple-600 text-purple-600"
+                    )
+                  : isDarkMode 
+                    ? "text-gray-400 hover:text-gray-300" 
+                    : "text-gray-500 hover:text-gray-700"
+              )}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab === 'cities' && 'الأحياء'}
+              {tab === 'states' && 'المدن'}
+              {tab === 'state-cities' && 'المدن مع أحيائها'}
+            </button>
+          ))}
         </div>
 
         <div className="flex items-end gap-2 w-full md:w-full">
@@ -627,36 +858,62 @@ export default function Locations() {
               placeholder="بحث..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-right"
+              className={cn(
+                "w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 text-right transition-colors duration-300",
+                isDarkMode
+                  ? "bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:ring-purple-400"
+                  : "bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-purple-500"
+              )}
             />
-            <svg xmlns="http://www.w3.org/2000/svg" className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className={cn(
+              "absolute left-3 top-2.5 h-5 w-5 transition-colors duration-300",
+              isDarkMode ? "text-gray-400" : "text-gray-400"
+            )} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
 
           <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="bg-purple-100 text-purple-600 px-4 py-2 rounded-lg flex items-center gap-1 cursor-pointer"
+            className={cn(
+              "px-4 py-2 rounded-lg flex items-center gap-1 cursor-pointer transition-all duration-300 hover:scale-105",
+              isDarkMode
+                ? "bg-purple-600/20 text-purple-400 hover:bg-purple-600/30"
+                : "bg-purple-100 text-purple-600 hover:bg-purple-200"
+            )}
           >
             فلتر
-            <DownloadCloudIcon/>
+            <DownloadCloudIcon size={18}/>
           </button>
 
-          <button className="bg-gray-100 p-2 rounded-lg">
-            <MoreVertical/>
+          <button className={cn(
+            "p-2 rounded-lg transition-colors duration-300 hover:scale-105",
+            isDarkMode
+              ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          )}>
+            <MoreVertical size={18}/>
           </button>
         </div>
       </div>
 
       {isFilterOpen && (
-        <div className="bg-white w-64 shadow-md rounded-lg p-4 mb-4 border border-gray-200 float-right mr-12">
+        <div className={cn(
+          "w-64 shadow-md rounded-lg p-4 mb-4 border float-right mr-12 transition-colors duration-300",
+          isDarkMode 
+            ? "bg-gray-800 border-gray-700 text-white" 
+            : "bg-white border-gray-200 text-gray-900"
+        )}>
           <div className="space-y-2 flex flex-col items-end w-full">
             {/* Filter options can be added here */}
           </div>
         </div>
       )}
       
-      <div className="rounded-md border">
+      <div className={cn(
+        "rounded-md border transition-colors duration-300",
+        isDarkMode ? "border-gray-700" : "border-gray-200"
+      )}>
         <DataTable data={getTableData()} columns={getColumns()} />
       </div>
     </div>

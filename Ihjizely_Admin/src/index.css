@@ -119,7 +119,7 @@
   
   }
   body {
-    @apply bg-background text-foreground;
+    /* @apply bg-background text-foreground; */
     font-family: 'Poppins';
     font-style: normal;
     font-weight: 400;
@@ -153,11 +153,11 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
+  /* background: linear-gradient(
       to bottom,
       transparent,
       rgb(var(--background-end-rgb))
-    rgb(var(--background-start-rgb)));
+    rgb(var(--background-start-rgb))); */
 }
 
 

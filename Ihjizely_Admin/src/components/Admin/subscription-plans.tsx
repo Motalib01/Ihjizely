@@ -1,4 +1,3 @@
-// src/components/Admin/subscription-plans.tsx
 import { useState, lazy, Suspense, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -12,6 +11,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { X } from "lucide-react";
+import { useDarkMode } from '../DarkModeContext';
+import { cn } from '@/lib/utils';
 
 // Lazy-loaded components
 const PlanCard = lazy(() => import("./PlanCard"));
@@ -29,11 +30,32 @@ export interface Plan {
   color: string;
   maxAds?: number;
   duration?: string;
-  durationInDays: number; // Add this required field
+  durationInDays: number;
   isActive?: boolean;
 }
 
+// Loading Skeleton Component
+const LoadingSkeleton = ({ isDarkMode }: { isDarkMode: boolean }) => (
+  <div className={cn(
+    "p-6 max-w-6xl mx-auto transition-colors duration-300",
+    isDarkMode ? "bg-gray-900" : "bg-white"
+  )}>
+    <div className={cn(
+      "grid grid-cols-1 md:grid-cols-3 gap-8 transition-colors duration-300",
+      isDarkMode ? "bg-gray-900" : "bg-white"
+    )}>
+      {[1, 2, 3].map((_, idx) => (
+        <div key={idx} className={cn(
+          "border rounded-2xl shadow-xl overflow-hidden h-[420px] animate-pulse transition-colors duration-300",
+          isDarkMode ? "bg-gray-800 border-gray-700" : "bg-gray-100 border-gray-200"
+        )} />
+      ))}
+    </div>
+  </div>
+);
+
 export default function SubscriptionPlans() {
+  const { isDarkMode } = useDarkMode();
   const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState<string>("");
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -41,58 +63,45 @@ export default function SubscriptionPlans() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newPlan, setNewPlan] = useState({
     name: '',
-    durationInDays: 1, // Change to number and match API field name
+    durationInDays: 1,
     amount: 0,
     currency: 'LYD',
     maxAds: 0
   });
-  
 
-  // Helper function to convert duration string to days
- // In subscription-plans.tsx, update the convertDurationToDays function:
+  const convertDurationToDays = (duration: string | number): number => {
+    if (!duration) return 30;
+    
+    if (typeof duration === 'number') {
+      return duration;
+    }
+    
+    if (/^\d+$/.test(duration)) {
+      return parseInt(duration);
+    }
+    
+    if (/^\d+\.\d{2}:\d{2}:\d{2}$/.test(duration)) {
+      const [days] = duration.split('.');
+      return parseInt(days);
+    }
+    
+    if (/^\d{2}:\d{2}:\d{2}$/.test(duration)) {
+      const [hours] = duration.split(':').map(Number);
+      return Math.ceil(hours / 24);
+    }
+    
+    return 30;
+  };
 
-const convertDurationToDays = (duration: string | number): number => {
-  if (!duration) return 30;
-  
-  // If it's a number, return it directly
-  if (typeof duration === 'number') {
-    return duration;
-  }
-  
-  // If it's a string that's just a number, parse it
-  if (/^\d+$/.test(duration)) {
-    return parseInt(duration);
-  }
-  
-  // If it's in TimeSpan format (like "5.00:00:00" for 5 days)
-  if (/^\d+\.\d{2}:\d{2}:\d{2}$/.test(duration)) {
-    const [days] = duration.split('.');
-    return parseInt(days);
-  }
-  
-  // If it's in HH:MM:SS format, convert to days
-  if (/^\d{2}:\d{2}:\d{2}$/.test(duration)) {
-    const [hours] = duration.split(':').map(Number);
-    return Math.ceil(hours / 24);
-  }
-  
-  return 30;
-};
-
-// Update the formatDurationForDisplay function:
-const formatDurationForDisplay = (duration: string | number): string => {
-  const days = convertDurationToDays(duration);
-  
-  if (days === 30) return "شهر";
-  if (days === 90) return "3 أشهر";
-  if (days === 180) return "6 أشهر";
-  if (days === 365) return "سنة";
-  return `${days} يوم`;
-};
-
-
-
- 
+  const formatDurationForDisplay = (duration: string | number): string => {
+    const days = convertDurationToDays(duration);
+    
+    if (days === 30) return "شهر";
+    if (days === 90) return "3 أشهر";
+    if (days === 180) return "6 أشهر";
+    if (days === 365) return "سنة";
+    return `${days} يوم`;
+  };
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -100,29 +109,26 @@ const formatDurationForDisplay = (duration: string | number): string => {
         setIsLoading(true);
         const apiPlans = await subscriptionsService.getAllPlans();
         
-        // Transform API plans to match our UI structure
-      // In the fetchPlans function, update the transformation:
-// In the fetchPlans function:
-const transformedPlans = apiPlans.map(plan => ({
-  id: plan.id,
-  name: plan.name,
-  tagline: getPlanTagline(plan.name),
-  price: plan.amount,
-  currency: plan.currency,
-  period: formatDurationForDisplay(plan.duration), // Use the returned duration
-  features: [
-    plan.maxAds 
-      ? `يمكنك إضافة ${plan.maxAds} إعلانات`
-      : "عدد غير محدد من الإعلانات",
-    `المدة: ${formatDurationForDisplay(plan.duration)}` // Use the returned duration
-  ],
-  icon: getPlanIcon(plan.name),
-  color: getPlanColor(plan.name),
-  maxAds: plan.maxAds,
-  duration: plan.duration,
-  durationInDays: convertDurationToDays(plan.duration), // Convert the returned duration to days
-  isActive: plan.isActive
-}));
+        const transformedPlans = apiPlans.map(plan => ({
+          id: plan.id,
+          name: plan.name,
+          tagline: getPlanTagline(plan.name),
+          price: plan.amount,
+          currency: plan.currency,
+          period: formatDurationForDisplay(plan.duration),
+          features: [
+            plan.maxAds 
+              ? `يمكنك إضافة ${plan.maxAds} إعلانات`
+              : "عدد غير محدد من الإعلانات",
+            `المدة: ${formatDurationForDisplay(plan.duration)}`
+          ],
+          icon: getPlanIcon(plan.name),
+          color: getPlanColor(plan.name),
+          maxAds: plan.maxAds,
+          duration: plan.duration,
+          durationInDays: convertDurationToDays(plan.duration),
+          isActive: plan.isActive
+        }));
         
         setPlans(transformedPlans);
         if (transformedPlans.length > 0) {
@@ -164,6 +170,7 @@ const transformedPlans = apiPlans.map(plan => ({
       default: return "bg-gradient-to-r from-purple-400 to-purple-600";
     }
   };
+
   const handleDeletePlan = async (planId: string) => {
     try {
       await subscriptionsService.deletePlan(planId);
@@ -173,75 +180,76 @@ const transformedPlans = apiPlans.map(plan => ({
       toast.error('فشل حذف الخطة');
     }
   };
- // Update the handleCreatePlan function:
-const handleCreatePlan = async () => {
-  try {
-    setIsLoading(true);
-    
-    const createdPlan = await subscriptionsService.createPlan({
-      name: newPlan.name,
-      durationInDays: newPlan.durationInDays,
-      amount: newPlan.amount,
-      currency: newPlan.currency,
-      maxAds: newPlan.maxAds
-    });
-    
-    const transformedPlan = {
-      id: createdPlan.id,
-      name: createdPlan.name,
-      tagline: getPlanTagline(createdPlan.name),
-      price: createdPlan.amount,
-      currency: createdPlan.currency,
-      period: formatDurationForDisplay(createdPlan.duration), // Use the returned duration
-      features: [
-        createdPlan.maxAds 
-          ? `يمكنك إضافة ${createdPlan.maxAds} إعلانات`
-          : "عدد غير محدد من الإعلانات",
-        `المدة: ${formatDurationForDisplay(createdPlan.duration)}` // Use the returned duration
-      ],
-      icon: getPlanIcon(createdPlan.name),
-      color: getPlanColor(createdPlan.name),
-      maxAds: createdPlan.maxAds,
-      duration: createdPlan.duration,
-      durationInDays: convertDurationToDays(createdPlan.duration), // Convert the returned duration to days
-      isActive: true
-    };
-    
-    setPlans(prev => [...prev, transformedPlan]);
-    setIsCreateDialogOpen(false);
-    setNewPlan({
-      name: '',
-      durationInDays: 1,
-      amount: 0,
-      currency: 'LYD',
-      maxAds: 0
-    });
-    toast.success("تم إنشاء الخطة بنجاح");
-  } catch (error) {
-    toast.error('فشل إنشاء الخطة');
-  } finally {
-    setIsLoading(false);
-  }
-};
-// Update the handleUpdatePlan function:
-const handleUpdatePlan = async (updatedPlan: Plan) => {
-  try {
-    const { id, name, price, currency, maxAds, durationInDays } = updatedPlan;
-    
-    await subscriptionsService.updatePlan(id, {
-      name,
-      durationInDays, // Send as number
-      amount: price,
-      currency,
-      maxAds
-    });
-    
-    setPlans(prev => prev.map(p => p.id === updatedPlan.id ? updatedPlan : p));
-    toast.success("تم تحديث الخطة بنجاح");
-  } catch (error) {
-    toast.error('فشل تحديث الخطة');
-  }
-};
+
+  const handleCreatePlan = async () => {
+    try {
+      setIsLoading(true);
+      
+      const createdPlan = await subscriptionsService.createPlan({
+        name: newPlan.name,
+        durationInDays: newPlan.durationInDays,
+        amount: newPlan.amount,
+        currency: newPlan.currency,
+        maxAds: newPlan.maxAds
+      });
+      
+      const transformedPlan = {
+        id: createdPlan.id,
+        name: createdPlan.name,
+        tagline: getPlanTagline(createdPlan.name),
+        price: createdPlan.amount,
+        currency: createdPlan.currency,
+        period: formatDurationForDisplay(createdPlan.duration),
+        features: [
+          createdPlan.maxAds 
+            ? `يمكنك إضافة ${createdPlan.maxAds} إعلانات`
+            : "عدد غير محدد من الإعلانات",
+          `المدة: ${formatDurationForDisplay(createdPlan.duration)}`
+        ],
+        icon: getPlanIcon(createdPlan.name),
+        color: getPlanColor(createdPlan.name),
+        maxAds: createdPlan.maxAds,
+        duration: createdPlan.duration,
+        durationInDays: convertDurationToDays(createdPlan.duration),
+        isActive: true
+      };
+      
+      setPlans(prev => [...prev, transformedPlan]);
+      setIsCreateDialogOpen(false);
+      setNewPlan({
+        name: '',
+        durationInDays: 1,
+        amount: 0,
+        currency: 'LYD',
+        maxAds: 0
+      });
+      toast.success("تم إنشاء الخطة بنجاح");
+    } catch (error) {
+      toast.error('فشل إنشاء الخطة');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdatePlan = async (updatedPlan: Plan) => {
+    try {
+      const { id, name, price, currency, maxAds, durationInDays } = updatedPlan;
+      
+      await subscriptionsService.updatePlan(id, {
+        name,
+        durationInDays,
+        amount: price,
+        currency,
+        maxAds
+      });
+      
+      setPlans(prev => prev.map(p => p.id === updatedPlan.id ? updatedPlan : p));
+      toast.success("تم تحديث الخطة بنجاح");
+    } catch (error) {
+      toast.error('فشل تحديث الخطة');
+    }
+  };
+
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId);
   };
@@ -253,47 +261,74 @@ const handleUpdatePlan = async (updatedPlan: Plan) => {
   };
 
   if (isLoading) {
-    return (
-      <div className="p-6 max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[1, 2, 3].map((_, idx) => (
-            <div key={idx} className="border rounded-2xl shadow-xl overflow-hidden h-[420px] bg-gray-100 animate-pulse" />
-          ))}
-        </div>
-      </div>
-    );
+    return <LoadingSkeleton isDarkMode={isDarkMode} />;
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className={cn(
+      "p-6 max-w-6xl mx-auto min-h-screen transition-colors duration-300",
+      isDarkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
+    )}>
       <div className="flex justify-between items-center mb-10">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">إدارة الاشتراكات</h1>
-          <p className="text-gray-600 mt-2">اختر الخطة المناسبة لاحتياجاتك التجارية</p>
+          <h1 className={cn(
+            "text-3xl font-bold transition-colors duration-300",
+            isDarkMode ? "text-white" : "text-gray-800"
+          )}>
+            إدارة الاشتراكات
+          </h1>
+          <p className={cn(
+            "mt-2 transition-colors duration-300",
+            isDarkMode ? "text-gray-400" : "text-gray-600"
+          )}>
+            اختر الخطة المناسبة لاحتياجاتك التجارية
+          </p>
         </div>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
             onClick={() => navigate("/Admin/subscriptions")}
-            className="flex items-center gap-2"
+            className={cn(
+              "flex items-center gap-2 transition-colors duration-300",
+              isDarkMode
+                ? "border-gray-600 text-gray-300 hover:bg-gray-800"
+                : "border-gray-300 text-gray-700 hover:bg-gray-100"
+            )}
           >
             رجوع إلى الاشتراكات
           </Button>
           
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
+              <Button className={cn(
+                "flex items-center gap-2 transition-colors duration-300 hover:scale-105",
+                isDarkMode
+                  ? "bg-purple-600 hover:bg-purple-700 text-white"
+                  : "bg-purple-600 hover:bg-purple-700 text-white"
+              )}>
                 إنشاء خطة جديدة
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className={cn(
+              "max-w-2xl transition-colors duration-300",
+              isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+            )}>
               <DialogHeader>
-                <DialogTitle className="flex justify-between items-center">
+                <DialogTitle className={cn(
+                  "flex justify-between items-center transition-colors duration-300",
+                  isDarkMode ? "text-white" : "text-gray-900"
+                )}>
                   <span>إنشاء خطة جديدة</span>
                   <Button 
                     variant="ghost" 
                     size="icon"
                     onClick={() => setIsCreateDialogOpen(false)}
+                    className={cn(
+                      "transition-colors duration-300",
+                      isDarkMode
+                        ? "text-gray-400 hover:bg-gray-700 hover:text-white"
+                        : "text-gray-600 hover:bg-gray-100"
+                    )}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -303,62 +338,115 @@ const handleUpdatePlan = async (updatedPlan: Plan) => {
               <div className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">اسم الخطة</label>
+                    <label className={cn(
+                      "block text-sm font-medium mb-1 transition-colors duration-300",
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    )}>
+                      اسم الخطة
+                    </label>
                     <input
                       type="text"
                       value={newPlan.name}
                       onChange={(e) => setNewPlan({...newPlan, name: e.target.value})}
-                      className="w-full p-2 border rounded"
+                      className={cn(
+                        "w-full p-2 border rounded transition-colors duration-300",
+                        isDarkMode
+                          ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                          : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                      )}
                       placeholder="أدخل اسم الخطة"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className={cn(
+                      "block text-sm font-medium mb-1 transition-colors duration-300",
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    )}>
                       المدة (أيام)
-                      <span className="text-xs text-gray-500 block">أدخل عدد الأيام (1-365)</span>
+                      <span className={cn(
+                        "text-xs block transition-colors duration-300",
+                        isDarkMode ? "text-gray-500" : "text-gray-500"
+                      )}>
+                        أدخل عدد الأيام (1-365)
+                      </span>
                     </label>
                     <input
-  type="number"
-  min="1"
-  max="365"
-  value={newPlan.durationInDays}
-  onChange={(e) => {
-    const value = Math.min(365, Math.max(1, parseInt(e.target.value) || 1));
-    setNewPlan({...newPlan, durationInDays: value});
-  }}
-  className="w-full p-2 border rounded"
-  placeholder="أدخل عدد الأيام"
-/>
+                      type="number"
+                      min="1"
+                      max="365"
+                      value={newPlan.durationInDays}
+                      onChange={(e) => {
+                        const value = Math.min(365, Math.max(1, parseInt(e.target.value) || 1));
+                        setNewPlan({...newPlan, durationInDays: value});
+                      }}
+                      className={cn(
+                        "w-full p-2 border rounded transition-colors duration-300",
+                        isDarkMode
+                          ? "bg-gray-700 border-gray-600 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
+                      )}
+                      placeholder="أدخل عدد الأيام"
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">السعر</label>
+                    <label className={cn(
+                      "block text-sm font-medium mb-1 transition-colors duration-300",
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    )}>
+                      السعر
+                    </label>
                     <input
                       type="number"
                       min="0"
                       value={newPlan.amount}
                       onChange={(e) => setNewPlan({...newPlan, amount: Number(e.target.value)})}
-                      className="w-full p-2 border rounded"
+                      className={cn(
+                        "w-full p-2 border rounded transition-colors duration-300",
+                        isDarkMode
+                          ? "bg-gray-700 border-gray-600 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
+                      )}
                       placeholder="أدخل سعر الخطة"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">العملة</label>
+                    <label className={cn(
+                      "block text-sm font-medium mb-1 transition-colors duration-300",
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    )}>
+                      العملة
+                    </label>
                     <select
                       value={newPlan.currency}
                       onChange={(e) => setNewPlan({...newPlan, currency: e.target.value})}
-                      className="w-full p-2 border rounded"
+                      className={cn(
+                        "w-full p-2 border rounded transition-colors duration-300",
+                        isDarkMode
+                          ? "bg-gray-700 border-gray-600 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
+                      )}
                     >
                       <option value="LYD">الدينار الليبي</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">الحد الأقصى للإعلانات (اختياري)</label>
+                    <label className={cn(
+                      "block text-sm font-medium mb-1 transition-colors duration-300",
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    )}>
+                      الحد الأقصى للإعلانات (اختياري)
+                    </label>
                     <input
                       type="number"
                       min="0"
                       value={newPlan.maxAds}
                       onChange={(e) => setNewPlan({...newPlan, maxAds: Number(e.target.value)})}
-                      className="w-full p-2 border rounded"
+                      className={cn(
+                        "w-full p-2 border rounded transition-colors duration-300",
+                        isDarkMode
+                          ? "bg-gray-700 border-gray-600 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
+                      )}
                       placeholder="أدخل الحد الأقصى للإعلانات"
                     />
                   </div>
@@ -367,13 +455,24 @@ const handleUpdatePlan = async (updatedPlan: Plan) => {
                   <Button 
                     variant="outline"
                     onClick={() => setIsCreateDialogOpen(false)}
+                    className={cn(
+                      "transition-colors duration-300",
+                      isDarkMode
+                        ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                        : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                    )}
                   >
                     إلغاء
                   </Button>
                   <Button 
                     onClick={handleCreatePlan} 
                     disabled={!newPlan.name || !newPlan.durationInDays || !newPlan.amount}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className={cn(
+                      "transition-colors duration-300 hover:scale-105",
+                      isDarkMode
+                        ? "bg-blue-600 hover:bg-blue-700 text-white"
+                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                    )}
                   >
                     حفظ الخطة
                   </Button>
@@ -384,28 +483,29 @@ const handleUpdatePlan = async (updatedPlan: Plan) => {
         </div>
       </div>
 
-      <Suspense fallback={<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {[1, 2, 3].map((_, idx) => (
-          <div key={idx} className="border rounded-2xl shadow-xl overflow-hidden h-[420px] bg-gray-100 animate-pulse" />
-        ))}
-      </div>}>
+      <Suspense fallback={<LoadingSkeleton isDarkMode={isDarkMode} />}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {plans.map(plan => (
-  <PlanCard 
-    key={plan.id}
-    plan={plan}
-    isSelected={selectedPlan === plan.id}
-    isAdmin={true}
-    onSelect={handleSelectPlan}
-    onUpdate={handleUpdatePlan}
-    onDelete={handleDeletePlan} // Add this prop
-  />
-))}
+          {plans.map(plan => (
+            <PlanCard 
+              key={plan.id}
+              plan={plan}
+              isSelected={selectedPlan === plan.id}
+              isAdmin={true}
+              onSelect={handleSelectPlan}
+              onUpdate={handleUpdatePlan}
+              onDelete={handleDeletePlan}
+            />
+          ))}
         </div>
       </Suspense>
 
       {plans.length > 0 && (
-        <Suspense fallback={<div className="mt-12 p-6 bg-white border rounded-xl shadow-sm h-28 bg-gray-100 animate-pulse" />}>
+        <Suspense fallback={
+          <div className={cn(
+            "mt-12 p-6 border rounded-xl shadow-sm h-28 animate-pulse transition-colors duration-300",
+            isDarkMode ? "bg-gray-800 border-gray-700" : "bg-gray-100 border-gray-200"
+          )} />
+        }>
           <ConfirmationSection 
             selectedPlan={selectedPlan}
             plans={plans}

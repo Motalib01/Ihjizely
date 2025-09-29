@@ -6,6 +6,7 @@ import App from './App.tsx'
 import { BrowserRouter } from 'react-router-dom'
 import React from 'react'
 import { DarkModeProvider } from './components/DarkModeContext.tsx'
+import './styles/dark-mode.css' // Add this line
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

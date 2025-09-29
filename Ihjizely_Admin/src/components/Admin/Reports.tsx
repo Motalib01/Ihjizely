@@ -1,206 +1,320 @@
-// src/components/Admin/Reports.tsx
-import { useState, useEffect } from 'react';
-import { reportsService } from '@/API/ReportService';
-import { toast } from 'sonner';
-import { DataTable } from '../data-table';
-import { ColumnDef } from '@tanstack/react-table';
-import { Button } from '../ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogOverlay, DialogTitle } from '../ui/dialog';
-import { useNavigate, useParams } from 'react-router-dom';
-import { IconTrash } from '@tabler/icons-react';
+import React, { useState, useEffect } from 'react';
+import { reportsService, Report } from '../../API/ReportService';
 
-export interface ReportRow {
-  id: string;
-  userId: string;
-  reason: string;
-  content: string;
-  createdAt: string;
-}
+const ReportsTable: React.FC = () => {
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'read'>('all');
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
-export default function Reports() {
-  const [reports, setReports] = useState<ReportRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedReport, setSelectedReport] = useState<ReportRow | null>(null);
-  const navigate = useNavigate();
-  const { id } = useParams();
-
-  // Fetch all reports
   useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        setLoading(true);
-        const data = await reportsService.getAllReports();
-        setReports(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch reports');
-        toast.error('Failed to load reports');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchReports();
-  }, []);
+    loadReports();
+  }, [activeTab]);
 
-  // Handle when URL changes (when clicking on a report)
-  useEffect(() => {
-    if (id) {
-      const report = reports.find(r => r.id === id);
-      if (report) {
-        setSelectedReport(report);
-      }
-    } else {
-      setSelectedReport(null);
-    }
-  }, [id, reports]);
-
-  // Filter reports based on search query
-  const filteredReports = reports.filter(report => {
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      report.reason.toLowerCase().includes(searchLower) ||
-      report.content.toLowerCase().includes(searchLower) ||
-      report.createdAt.toLowerCase().includes(searchLower)
-    );
-  });
-
-  // Handle report deletion
-  const handleDeleteReport = async (id: string) => {
+  const loadReports = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      await reportsService.deleteReport(id);
-      setReports(prev => prev.filter(report => report.id !== id));
-      toast.success('تم حذف التقرير بنجاح');
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to delete report');
+      let data: Report[];
+      
+      switch (activeTab) {
+        case 'unread':
+          data = await reportsService.getUnreadReports();
+          break;
+        case 'read':
+          data = await reportsService.getReadReports();
+          break;
+        default:
+          data = await reportsService.getAllReports();
+      }
+      
+      setReports(data);
+    } catch (error) {
+      console.error('Error loading reports:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Close modal handler
-  const handleCloseModal = () => {
-    navigate('/Admin/reports');
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await reportsService.markAsRead(id);
+      // Show success message or refresh data
+      await loadReports();
+      // Optionally switch to read tab
+      setActiveTab('read');
+    } catch (error) {
+      console.error('Error marking report as read:', error);
+      // Show error message to user
+      alert('فشل في تعيين التقرير كمقروء. يرجى المحاولة مرة أخرى.');
+    }
   };
 
-  // Table columns configuration
-  const columns: ColumnDef<ReportRow>[] = [
-    {
-      accessorKey: "reason",
-      header: "السبب",
-      cell: ({ row }) => <span>{row.original.reason}</span>,
-    },
-    {
-      accessorKey: "content",
-      header: "المحتوى",
-      cell: ({ row }) => <span className="truncate max-w-xs">{row.original.content}</span>,
-    },
-    {
-      accessorKey: "createdAt",
-      header: "تاريخ الإنشاء",
-      cell: ({ row }) => <span>{new Date(row.original.createdAt).toLocaleDateString()}</span>,
-    },
-    {
-      id: "actions",
-      header: "الإجراءات",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(`/Admin/reports/${row.original.id}`)}
-          >
-            عرض التفاصيل
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              if (confirm(`هل أنت متأكد من حذف هذا التقرير؟`)) {
-                handleDeleteReport(row.original.id);
-              }
-            }}
-          >
-            <IconTrash className="w-4 h-4 text-red-500" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  const handleDelete = async (id: string) => {
+    if (window.confirm('هل أنت متأكد من أنك تريد حذف هذا التقرير؟')) {
+      try {
+        await reportsService.deleteReport(id);
+        await loadReports();
+      } catch (error) {
+        console.error('Error deleting report:', error);
+      }
+    }
+  };
 
-  if (loading) {
-    return <div className="p-6 flex items-center justify-center h-64">جاري تحميل البيانات...</div>;
-  }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
-  if (error) {
-    return <div className="p-6 flex items-center justify-center h-64 text-red-500">{error}</div>;
-  }
+  const truncateContent = (content: string, maxLength: number = 100) => {
+    if (content.length <= maxLength) return content;
+    return content.substring(0, maxLength) + '...';
+  };
 
   return (
-    <div className="p-6">
-      {/* Main Content */}
-      <div className="flex flex-col md:flex-col justify-between md:items-center gap-4 mb-6">
-        <div className="flex items-center gap-2 justify-between w-full">
-          <div>           
-            <h1 className='text-2xl font-bold text-gray-800'>التقارير</h1>
-            <p className="text-gray-600 mt-1">إدارة جميع التقارير في النظام</p>
-          </div>
-        </div>
-
-        <div className="flex items-end gap-2 w-full md:w-full">
-          <div className="relative flex-1 w-full">
-            <input
-              type="text"
-              placeholder="بحث..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-right"
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-        </div>
+    <div className="p-6" dir="rtl">
+      {/* Tabs */}
+      <div className="flex mb-6 border-b border-gray-200">
+        <button
+          className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === 'all' 
+              ? 'border-blue-500 text-blue-600' 
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+          onClick={() => setActiveTab('all')}
+        >
+          جميع التقارير
+        </button>
+        <button
+          className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === 'unread' 
+              ? 'border-blue-500 text-blue-600' 
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+          onClick={() => setActiveTab('unread')}
+        >
+          غير المقروء
+        </button>
+        <button
+          className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === 'read' 
+              ? 'border-blue-500 text-blue-600' 
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+          onClick={() => setActiveTab('read')}
+        >
+          المقروء
+        </button>
       </div>
-      
+
       {/* Reports Table */}
-      <div className="rounded-md border">
-        <DataTable data={filteredReports} columns={columns} />
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center items-center py-12 text-gray-500">
+            جاري تحميل التقارير...
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    اسم المستخدم
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    رقم الهاتف
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    المحتوى
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    التاريخ
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    الحالة
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    الإجراءات
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {reports.map((report) => (
+                  <tr 
+                    key={report.id} 
+                    className={`hover:bg-gray-50 cursor-pointer transition-colors ${
+                      !report.isRead ? 'bg-yellow-50 hover:bg-yellow-100' : ''
+                    }`}
+                    onClick={() => setSelectedReport(report)}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {report.userName || 'غير متوفر'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {report.phoneNumber || 'غير متوفر'}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900 max-w-md">
+                      <span title={report.content}>
+                        {truncateContent(report.content)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(report.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        report.isRead 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {report.isRead ? 'مقروء' : 'غير مقروء'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2 justify-end">
+                        {!report.isRead && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMarkAsRead(report.id);
+                            }}
+                            className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded text-xs font-medium transition-colors"
+                          >
+                            تعيين كمقروء
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(report.id);
+                          }}
+                          className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded text-xs font-medium transition-colors"
+                        >
+                          حذف
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {reports.length === 0 && !loading && (
+          <div className="flex justify-center items-center py-12 text-gray-500">
+            لم يتم العثور على تقارير
+          </div>
+        )}
       </div>
 
       {/* Report Detail Modal */}
-      <Dialog open={!!selectedReport} onOpenChange={handleCloseModal}>
-        <DialogOverlay className='z-[99999]'>
-        <DialogContent className="sm:max-w-[625px] max-h-[80vh] overflow-y-auto z-[9999999]">
-          <DialogHeader>
-            <DialogTitle>تفاصيل التقرير</DialogTitle>
-            <DialogDescription>معلومات كاملة عن التقرير المحدد</DialogDescription>
-          </DialogHeader>
-          {selectedReport && (
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <h4 className="font-medium">السبب:</h4>
-                <p className="text-gray-600 break-words">{selectedReport.reason}</p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-medium">المحتوى:</h4>
-                <p className="text-gray-600 whitespace-pre-line break-words">{selectedReport.content}</p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-medium">تاريخ الإنشاء:</h4>
-                <p className="text-gray-600">
-                  {new Date(selectedReport.createdAt).toLocaleString()}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-medium">معرف المستخدم:</h4>
-                <p className="text-gray-600 break-all">{selectedReport.userId}</p>
+      {selectedReport && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={() => setSelectedReport(null)}
+        >
+          <div 
+            className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+            dir="rtl"
+          >
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">تفاصيل التقرير</h3>
+              <button 
+                onClick={() => setSelectedReport(null)}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-light"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="px-6 py-4 space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    اسم المستخدم:
+                  </label>
+                  <span className="text-sm text-gray-900">{selectedReport.userName || 'غير متوفر'}</span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    رقم الهاتف:
+                  </label>
+                  <span className="text-sm text-gray-900">{selectedReport.phoneNumber || 'غير متوفر'}</span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    السبب:
+                  </label>
+                  <span className="text-sm text-gray-900">{selectedReport.reason}</span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    المحتوى:
+                  </label>
+                  <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-md mt-1 text-right">
+                    {selectedReport.content}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    التاريخ:
+                  </label>
+                  <span className="text-sm text-gray-900">{formatDate(selectedReport.createdAt)}</span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    الحالة:
+                  </label>
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    selectedReport.isRead 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {selectedReport.isRead ? 'مقروء' : 'غير مقروء'}
+                  </span>
+                </div>
               </div>
             </div>
-          )}
-        </DialogContent>
-        </DialogOverlay>
-      </Dialog>
+            
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3 space-x-reverse">
+              {!selectedReport.isRead && (
+                <button
+                  onClick={() => {
+                    handleMarkAsRead(selectedReport.id);
+                    setSelectedReport(null);
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+                >
+                  تعيين كمقروء
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  handleDelete(selectedReport.id);
+                  setSelectedReport(null);
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+              >
+                حذف التقرير
+              </button>
+              <button 
+                onClick={() => setSelectedReport(null)}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded text-sm font-medium transition-colors"
+              >
+                إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default ReportsTable;

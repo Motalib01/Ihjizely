@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Define types for your API responses and data
 type LoginCredentials = {
-  phoneNumber: string;
+  emailOrPhone: string;
   password: string;
 };
 
