@@ -170,4 +170,16 @@ public class UsersController : ControllerBase
         var result = await _mediator.Send(new CheckPhoneNumberQuery(phoneNumber), cancellationToken);
         return Ok(new { exists = result });
     }
+
+    [HttpPost("send-email-veryfication")]
+    public async Task<IActionResult> SendOtp([FromBody] SendOtpRequest request, CancellationToken cancellationToken)
+    {
+        var command = new SendEmailVerificationCommand(request.UserId, request.Email);
+        var result = await _mediator.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok("Verification email sent");
+    }
 }

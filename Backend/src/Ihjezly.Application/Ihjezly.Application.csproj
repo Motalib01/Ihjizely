@@ -32,7 +32,6 @@
     <Folder Include="Transactions\GetByUser\" />
     <Folder Include="Users\GetAllUsers\" />
     <Folder Include="Users\UpdateUser\" />
-    <Folder Include="Users\VerifyUser\" />
     <Folder Include="Users\ResetPassword\" />
     <Folder Include="Wallets\GetAllWallets\" />
   </ItemGroup>

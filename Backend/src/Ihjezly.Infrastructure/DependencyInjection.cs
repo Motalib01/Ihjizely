@@ -118,6 +118,8 @@ public static class DependencyInjection
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
         services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<ILocationRepository, LocationRepository>();
+        services.AddScoped<IEmailVerificationRepository, EmailVerificationRepository>();
+
 
 
         // Property Repositories
@@ -143,6 +145,7 @@ public static class DependencyInjection
 
         // Authentication
         services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<IEmailSender, SmtpEmailSender>();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
