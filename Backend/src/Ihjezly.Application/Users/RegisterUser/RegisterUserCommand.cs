@@ -7,7 +7,7 @@ namespace Ihjezly.Application.Users.RegisterUser;
 public sealed record RegisterUserCommand(
     string FirstName,
     string LastName,
-    string PhoneNumber,
-    string Email,
+    string? PhoneNumber,
+    string? Email,
     string Password,
     UserRole Role) : ICommand<UserDto>;

@@ -42,7 +42,7 @@ public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, U
         {
             UserRole.Client => Client.Create(request.FirstName, request.LastName, request.PhoneNumber, request.Email, hashedPassword, false),
             UserRole.BusinessOwner => BusinessOwner.Create(request.FirstName, request.LastName, request.PhoneNumber, request.Email, hashedPassword, false),
-            UserRole.Admin => Admin.Create(request.FirstName, request.LastName, request.PhoneNumber, hashedPassword, request.Email, false),
+            UserRole.Admin => Admin.Create(request.FirstName, request.LastName, request.PhoneNumber,request.Email, hashedPassword,  false),
             _ => throw new ArgumentOutOfRangeException(nameof(request.Role), $"Unsupported role: {request.Role}")
         };
 
