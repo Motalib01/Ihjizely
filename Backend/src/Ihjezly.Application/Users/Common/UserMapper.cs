@@ -12,6 +12,7 @@ public static class UserMapper
             FirstName = user.FirstName,
             LastName = user.LastName,
             PhoneNumber = user.PhoneNumber,
+            Email = user.Email,
             Role = user.Role.ToString(),
             ProfilePictureUrl = user.UserProfilePicture.Url,
             IsVerified = user.IsVerified,

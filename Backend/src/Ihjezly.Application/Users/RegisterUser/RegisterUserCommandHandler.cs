@@ -36,13 +36,19 @@ public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, U
         if (existingUser is not null)
             return Result.Failure<UserDto>(UserErrors.PhoneNumberAlreadyInUse);
 
+        var existingEmail = await _userRepository.GetByPhoneOrEmailAsync(request.Email, cancellationToken);
+        if (existingEmail is not null)
+            return Result.Failure<UserDto>(UserErrors.PhoneNumberAlreadyInUse);
+
+
+
         var hashedPassword = _jwtService.HashPassword(request.Password);
 
         User user = request.Role switch
         {
             UserRole.Client => Client.Create(request.FirstName, request.LastName, request.PhoneNumber, request.Email, hashedPassword, false),
             UserRole.BusinessOwner => BusinessOwner.Create(request.FirstName, request.LastName, request.PhoneNumber, request.Email, hashedPassword, false),
-            UserRole.Admin => Admin.Create(request.FirstName, request.LastName, request.PhoneNumber,request.Email, hashedPassword,  false),
+            UserRole.Admin => Admin.Create(request.FirstName, request.LastName, request.PhoneNumber, request.Email, hashedPassword,  false),
             _ => throw new ArgumentOutOfRangeException(nameof(request.Role), $"Unsupported role: {request.Role}")
         };
 
