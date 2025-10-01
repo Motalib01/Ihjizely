@@ -29,6 +29,20 @@ public class SmtpEmailSender : IEmailSender
         };
 
         using var message = new MailMessage(from, to, subject, body);
-        await client.SendMailAsync(message);
+
+        try
+        {
+            await client.SendMailAsync(message);
+        }
+        catch (SmtpException smtpEx)
+        {
+            throw new InvalidOperationException($"SMTP error: {smtpEx.StatusCode} - {smtpEx.Message}", smtpEx);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Unexpected error while sending email: {ex.Message}", ex);
+        }
     }
+
+
 }

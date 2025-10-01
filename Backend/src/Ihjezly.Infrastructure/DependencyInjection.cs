@@ -145,6 +145,7 @@ public static class DependencyInjection
 
         // Authentication
         services.AddScoped<IJwtService, JwtService>();
+
         services.AddScoped<IEmailSender, SmtpEmailSender>();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
