@@ -36,10 +36,6 @@ public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, U
         if (existingUser is not null)
             return Result.Failure<UserDto>(UserErrors.PhoneNumberAlreadyInUse);
 
-        var existingEmail = await _userRepository.GetByPhoneOrEmailAsync(request.Email, cancellationToken);
-        if (existingEmail is not null)
-            return Result.Failure<UserDto>(UserErrors.PhoneNumberAlreadyInUse);
-
 
 
         var hashedPassword = _jwtService.HashPassword(request.Password);
