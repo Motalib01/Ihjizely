@@ -24,11 +24,21 @@ public class SmtpEmailSender : IEmailSender
 
         using var client = new SmtpClient(host, port)
         {
+            UseDefaultCredentials = false,
             Credentials = new NetworkCredential(username, password),
-            EnableSsl = true
+            EnableSsl = true,
+            DeliveryMethod = SmtpDeliveryMethod.Network
         };
 
-        using var message = new MailMessage(from, to, subject, body);
+        using var message = new MailMessage
+        {
+            From = new MailAddress(from, "Ihjezly App"),
+            Subject = subject,
+            Body = body,
+            IsBodyHtml = true
+        };
+
+        message.To.Add(new MailAddress(to));
 
         try
         {
@@ -36,13 +46,13 @@ public class SmtpEmailSender : IEmailSender
         }
         catch (SmtpException smtpEx)
         {
-            throw new InvalidOperationException($"SMTP error: {smtpEx.StatusCode} - {smtpEx.Message}", smtpEx);
+            throw new InvalidOperationException(
+                $"SMTP error: {smtpEx.StatusCode} - {smtpEx.Message}", smtpEx);
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Unexpected error while sending email: {ex.Message}", ex);
+            throw new InvalidOperationException(
+                $"Unexpected error while sending email: {ex.Message}", ex);
         }
     }
-
-
 }

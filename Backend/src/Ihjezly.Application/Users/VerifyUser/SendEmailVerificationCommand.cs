@@ -38,20 +38,27 @@ internal sealed class SendEmailVerificationHandler
         // Generate OTP
         var otp = new Random().Next(100000, 999999).ToString();
 
-        // Save OTP
+        // Save OTP first
         var otpEntity = EmailVerificationCode.Create(request.UserId, otp, DateTime.UtcNow.AddMinutes(5));
         await _otpRepository.AddAsync(otpEntity, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Send email
+        // Send email after saving
+        var emailBody = $@"
+        <h2>Email Verification</h2>
+        <p>Hello {user.FirstName},</p>
+        <p>Your verification code is:</p>
+        <h1 style='color:blue'>{otp}</h1>
+        <p>This code will expire in 5 minutes.</p>";
+
         await _emailSender.SendAsync(
             request.Email,
             "Verify your email",
-            $"Your verification code is {otp}");
-
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            emailBody);
 
         return Result.Success();
     }
+
 }
 
 
