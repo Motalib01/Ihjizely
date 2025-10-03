@@ -5,5 +5,6 @@ public sealed record ReportDto(
     Guid UserId,
     string Reason,
     string Content,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    bool Isread
 );

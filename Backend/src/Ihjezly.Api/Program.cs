@@ -1,11 +1,12 @@
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using Ihjezly.Api.Extentions;
 using Ihjezly.Application;
 using Ihjezly.Infrastructure;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
-using Asp.Versioning;
-using Asp.Versioning.ApiExplorer;
 
 namespace Ihjezly.Api
 {
@@ -48,6 +49,9 @@ namespace Ihjezly.Api
                 options.GroupNameFormat = "'v'VVV"; 
                 options.SubstituteApiVersionInUrl = true;
             });
+
+           
+
 
             // Swagger setup
             builder.Services.AddEndpointsApiExplorer();
@@ -123,6 +127,16 @@ namespace Ihjezly.Api
 
             app.MapControllers();
 
+            app.UseExceptionHandler(errorApp =>
+            {
+                errorApp.Run(async context =>
+                {
+                    context.Response.StatusCode = 500;
+                    context.Response.ContentType = "application/json";
+                    var error = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+                    await context.Response.WriteAsJsonAsync(new { error = error?.Message, stackTrace = error?.StackTrace });
+                });
+            });
             app.Run();
         }
     }

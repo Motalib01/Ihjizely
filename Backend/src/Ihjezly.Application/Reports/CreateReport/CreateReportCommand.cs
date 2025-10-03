@@ -2,4 +2,4 @@
 
 namespace Ihjezly.Application.Reports.CreateReport;
 
-public sealed record CreateReportCommand(Guid UserId, string Reason, string Content,string Replay, bool IsRead) : ICommand;
+public sealed record CreateReportCommand(Guid UserId, string Reason, string Content,string? Replay, bool IsRead) : ICommand;

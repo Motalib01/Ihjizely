@@ -6,29 +6,36 @@ namespace Ihjezly.Infrastructure.Repositories;
 
 internal sealed class EmailVerificationRepository : IEmailVerificationRepository
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly ApplicationDbContext _context;
 
-    public EmailVerificationRepository(ApplicationDbContext dbContext)
+    public EmailVerificationRepository(ApplicationDbContext context)
     {
-        _dbContext = dbContext;
+        _context = context;
     }
 
-    public async Task AddAsync(EmailVerificationCode code, CancellationToken cancellationToken)
+    public async Task AddAsync(EmailVerificationCode code, CancellationToken cancellationToken = default)
     {
-        await _dbContext.Set<EmailVerificationCode>().AddAsync(code, cancellationToken);
+        await _context.Set<EmailVerificationCode>().AddAsync(code, cancellationToken);
     }
 
-    public async Task<EmailVerificationCode?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+    public void Update(EmailVerificationCode code)
     {
-        return await _dbContext.Set<EmailVerificationCode>()
-            .Where(x => x.UserId == userId && !x.IsUsed && x.ExpiresAt > DateTime.UtcNow)
-            .OrderByDescending(x => x.ExpiresAt)
+        _context.Set<EmailVerificationCode>().Update(code);
+    }
+
+    public async Task<EmailVerificationCode?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        return await _context
+            .Set<EmailVerificationCode>()
+            .OrderByDescending(e => e.ExpiresAt)
+            .FirstOrDefaultAsync(e => e.Email == email, cancellationToken);
+    }
+
+    public async Task<EmailVerificationCode?> GetActiveCodeAsync(string email, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<EmailVerificationCode>()
+            .Where(c => c.Email == email && !c.IsUsed && c.ExpiresAt > DateTime.UtcNow)
+            .OrderByDescending(c => c.ExpiresAt)
             .FirstOrDefaultAsync(cancellationToken);
-    }
-
-    public async Task<EmailVerificationCode?> GetByUserIdAndCodeAsync(Guid userId, string code, CancellationToken cancellationToken)
-    {
-        return await _dbContext.Set<EmailVerificationCode>()
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.Code == code && !x.IsUsed, cancellationToken);
     }
 }

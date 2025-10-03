@@ -14,6 +14,9 @@ internal sealed class ReportConfiguration : IEntityTypeConfiguration<Report>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Reason).HasMaxLength(1000);
 
+        builder.Property(x => x.Replay)
+            .IsRequired(false);
+
         builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(r => r.UserId)

@@ -2,7 +2,8 @@
 
 public interface IEmailVerificationRepository
 {
-    Task AddAsync(EmailVerificationCode code, CancellationToken cancellationToken);
-    Task<EmailVerificationCode?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken);
-    Task<EmailVerificationCode?> GetByUserIdAndCodeAsync(Guid userId, string code, CancellationToken cancellationToken);
+    Task<EmailVerificationCode?> GetActiveCodeAsync(string email, CancellationToken cancellationToken = default);
+    Task AddAsync(EmailVerificationCode code, CancellationToken cancellationToken = default);
+    void Update(EmailVerificationCode code);
+    Task<EmailVerificationCode?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
 }

@@ -171,15 +171,28 @@ public class UsersController : ControllerBase
         return Ok(new { exists = result });
     }
 
-    [HttpPost("send-email-veryfication")]
-    public async Task<IActionResult> SendOtp([FromBody] SendOtpRequest request, CancellationToken cancellationToken)
+    [HttpPost("send-email-code")]
+    public async Task<IActionResult> SendEmailCode([FromBody] SendEmailVerificationCodeRequest request)
     {
-        var command = new SendEmailVerificationCommand(request.UserId, request.Email);
-        var result = await _mediator.Send(command, cancellationToken);
+        var command = new SendEmailVerificationCodeCommand(request.Email);
+        var result = await _mediator.Send(command);
 
         if (result.IsFailure)
             return BadRequest(result.Error);
 
-        return Ok("Verification email sent");
+        return Ok(new { message = "Verification code sent successfully" });
+    }
+
+    
+    [HttpPost("verify-email-code")]
+    public async Task<IActionResult> VerifyEmailCode([FromBody] VerifyEmailCodeRequest request)
+    {
+        var command = new VerifyEmailCodeCommand(request.Mail, request.Code);
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok(new { verified = result.Value });
     }
 }

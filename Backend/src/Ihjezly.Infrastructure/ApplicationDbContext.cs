@@ -67,6 +67,8 @@ public sealed class ApplicationDbContext : DbContext, IUnitOfWork
     public DbSet<EventHallLarge> EventHallsLarge => Set<EventHallLarge>();
     public DbSet<EventHallSmall> EventHallsSmall => Set<EventHallSmall>();
     public DbSet<MeetingRoom> MeetingRooms => Set<MeetingRoom>();
+    public DbSet<EmailVerificationCode> EmailVerificationCodes => Set<EmailVerificationCode>();
+
 
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
@@ -141,6 +143,9 @@ public sealed class ApplicationDbContext : DbContext, IUnitOfWork
 
             Console.WriteLine(">>> Applying SavedPropertyConfiguration");
             modelBuilder.ApplyConfiguration(new SavedPropertyConfiguration());
+
+            Console.WriteLine(">>> Applying EmailVerificationCodeConfiguration");
+            modelBuilder.ApplyConfiguration(new EmailVerificationCodeConfiguration());
 
             Console.WriteLine(">>> Applying OutboxMessageConfiguration");
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());

@@ -35,7 +35,8 @@ namespace Ihjezly.Application.Reports.GetReportById
                 report.User.FirstName,
                 report.User.LastName,
                 report.User.PhoneNumber,
-                report.User.Email
+                report.User.Email,
+                report.IsRead
             );
 
             return response;

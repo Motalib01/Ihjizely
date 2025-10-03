@@ -12,9 +12,6 @@ internal sealed class EmailVerificationCodeConfiguration : IEntityTypeConfigurat
 
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.UserId)
-            .IsRequired();
-
         builder.Property(x => x.Code)
             .HasMaxLength(10)
             .IsRequired();

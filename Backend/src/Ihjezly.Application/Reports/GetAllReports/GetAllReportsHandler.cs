@@ -24,7 +24,8 @@ internal sealed class GetAllReportsHandler : IQueryHandler<GetAllReportsQuery, I
                 r.UserId,
                 r.Reason,
                 r.Content,
-                r.CreatedAt))
+                r.CreatedAt,
+                r.IsRead))
             .ToList();
 
         return result;

@@ -15,5 +15,6 @@ public sealed record ReportDetailsResponse(
     string FirstName,
     string LastName,
     string PhoneNumber,
-    string Email
+    string Email,
+    bool IsRead
 );
