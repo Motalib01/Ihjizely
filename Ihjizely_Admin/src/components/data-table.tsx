@@ -1750,7 +1750,7 @@ export function WalletTable({ data: initialData }: { data: WalletRow[] }) {
   // Handle dialog close
   const handleDialogClose = () => {
     setRechargeDialogOpen(false);
-    setRechargeAmount('');
+      setRechargeAmount('');
     setSelectedWallet(null);
   };
 
@@ -1985,20 +1985,25 @@ export function WalletTable({ data: initialData }: { data: WalletRow[] }) {
             <div>
               <label className={`block text-sm font-medium mb-1 ${
                 isDarkMode ? "dark:text-gray-300" : ""
-              }`}>المبلغ (LYD)</label>
-              <Input
-                type="number"
-                value={rechargeAmount}
-                onChange={(e) => setRechargeAmount(e.target.value)}
-                placeholder="أدخل المبلغ"
-                className={`w-full ${
-                  isDarkMode 
-                    ? "dark:bg-gray-800 dark:border-gray-700 dark:text-white" 
-                    : ""
-                }`}
-                min="1"
-                step="0.01"
-              />
+              }`}>المبلغ</label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  value={rechargeAmount}
+                  onChange={(e) => setRechargeAmount(e.target.value)}
+                  placeholder="أدخل المبلغ"
+                  className={`w-full pr-12 ${
+                    isDarkMode 
+                      ? "dark:bg-gray-800 dark:border-gray-700 dark:text-white" 
+                      : ""
+                  }`}
+                  min="1"
+                  step="0.01"
+                />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  LYD
+                </div>
+              </div>
             </div>
 
             <div className="relative">

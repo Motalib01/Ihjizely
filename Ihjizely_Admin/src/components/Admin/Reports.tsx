@@ -5,6 +5,7 @@ import { useDarkMode } from '../DarkModeContext';
 const ReportsTable: React.FC = () => {
   const { isDarkMode } = useDarkMode();
   const [reports, setReports] = useState<Report[]>([]);
+  const [allReports, setAllReports] = useState<Report[]>([]); // Store all reports from backend
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'read'>('all');
@@ -15,38 +16,20 @@ const ReportsTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    loadReports();
-  }, [activeTab]);
+    loadAllReports();
+  }, []);
 
-  useEffect(() => {
-    if (selectedReport) {
-      loadRepliesForSelectedReport();
-    }
-  }, [selectedReport]);
-
-  const loadReports = async () => {
+  // Load all reports from backend
+  const loadAllReports = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      let data: Report[];
-      
-      console.log(`Loading reports for tab: ${activeTab}`);
-      
-      switch (activeTab) {
-        case 'unread':
-          data = await reportsService.getUnreadReports();
-          break;
-        case 'read':
-          data = await reportsService.getReadReports();
-          break;
-        default:
-          data = await reportsService.getAllReports();
-      }
-      
-      console.log(`Loaded ${data.length} reports`);
-      setReports(data);
-      
+      console.log('Loading all reports from backend...');
+      const data = await reportsService.getAllReports();
+      console.log(`Loaded ${data.length} reports from backend`);
+      setAllReports(data);
+      filterReportsByTab(data, activeTab);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'حدث خطأ غير متوقع';
       setError(errorMessage);
@@ -56,17 +39,43 @@ const ReportsTable: React.FC = () => {
     }
   };
 
+  // Filter reports based on active tab
+  const filterReportsByTab = (reportsList: Report[], tab: 'all' | 'unread' | 'read') => {
+    let filteredData: Report[];
+    
+    switch (tab) {
+      case 'unread':
+        filteredData = reportsList.filter(report => !report.isRead);
+        break;
+      case 'read':
+        filteredData = reportsList.filter(report => report.isRead);
+        break;
+      default:
+        filteredData = reportsList;
+    }
+    
+    console.log(`Filtered ${filteredData.length} reports for tab: ${tab}`);
+    setReports(filteredData);
+  };
+
+  // Handle tab changes
+  useEffect(() => {
+    filterReportsByTab(allReports, activeTab);
+  }, [activeTab, allReports]);
+
   const loadRepliesForSelectedReport = async () => {
     if (!selectedReport) return;
     
     try {
-      const latestReplies = await reportsService.getReplies(selectedReport.id);
-      if (latestReplies.length !== (selectedReport.replies?.length || 0)) {
-        setSelectedReport(prev => prev ? {
-          ...prev,
-          replies: latestReplies
-        } : null);
-      }
+      const updatedReport = await reportsService.getReportById(selectedReport.id);
+      setSelectedReport(updatedReport);
+      
+      // Also update the report in our local state
+      setAllReports(prev => 
+        prev.map(report => 
+          report.id === updatedReport.id ? updatedReport : report
+        )
+      );
     } catch (error) {
       console.error('Error loading replies for selected report:', error);
     }
@@ -75,7 +84,7 @@ const ReportsTable: React.FC = () => {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchTerm.trim()) {
-      loadReports();
+      filterReportsByTab(allReports, activeTab);
       return;
     }
 
@@ -84,11 +93,21 @@ const ReportsTable: React.FC = () => {
     
     try {
       const data = await reportsService.searchReports(searchTerm);
-      setReports(data);
+      filterReportsByTab(data, activeTab);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'فشل في البحث';
       setError(errorMessage);
       console.error('Error searching reports:', err);
+      
+      // Fallback to client-side search
+      const searchResults = allReports.filter(report => 
+        report.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        report.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        report.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        report.phoneNumber?.includes(searchTerm)
+      );
+      
+      filterReportsByTab(searchResults, activeTab);
     } finally {
       setLoading(false);
     }
@@ -96,7 +115,7 @@ const ReportsTable: React.FC = () => {
 
   const handleClearSearch = () => {
     setSearchTerm('');
-    loadReports();
+    filterReportsByTab(allReports, activeTab);
   };
 
   const handleMarkAsRead = async (id: string) => {
@@ -106,20 +125,48 @@ const ReportsTable: React.FC = () => {
     try {
       await reportsService.markAsRead(id);
       
-      setReports(prevReports => 
-        prevReports.map(report => 
-          report.id === id ? { ...report, isRead: true } : report
-        )
+      // Update both allReports and filtered reports
+      const updatedAllReports = allReports.map(report => 
+        report.id === id ? { ...report, isRead: true } : report
       );
+      
+      setAllReports(updatedAllReports);
+      filterReportsByTab(updatedAllReports, activeTab);
       
       if (selectedReport?.id === id) {
         setSelectedReport(prev => prev ? { ...prev, isRead: true } : null);
       }
       
+      console.log('✅ Report marked as read successfully');
+      
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'فشل في تعيين التقرير كمقروء';
-      setError(errorMessage);
+      let errorMessage = 'فشل في تعيين التقرير كمقروء';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      } else if (err && typeof err === 'object' && 'message' in err) {
+        errorMessage = String((err as any).message);
+      }
+      
+      if (!errorMessage.includes('updated locally')) {
+        setError(errorMessage);
+      }
+      
       console.error('Error marking report as read:', err);
+      
+      // Optimistic update
+      const updatedAllReports = allReports.map(report => 
+        report.id === id ? { ...report, isRead: true } : report
+      );
+      
+      setAllReports(updatedAllReports);
+      filterReportsByTab(updatedAllReports, activeTab);
+      
+      if (selectedReport?.id === id) {
+        setSelectedReport(prev => prev ? { ...prev, isRead: true } : null);
+      }
     } finally {
       setActionLoading(null);
     }
@@ -132,7 +179,8 @@ const ReportsTable: React.FC = () => {
       
       try {
         await reportsService.deleteReport(id);
-        await loadReports();
+        // Reload all reports from backend to ensure consistency
+        await loadAllReports();
         
         if (selectedReport?.id === id) {
           setSelectedReport(null);
@@ -153,28 +201,24 @@ const ReportsTable: React.FC = () => {
       setError('يرجى إدخال محتوى الرد');
       return;
     }
-
+  
     setReplyLoading(true);
     setError(null);
     
     try {
-      const newReply = await reportsService.addReply(reportId, replyContent);
+      await reportsService.addReply(reportId, replyContent);
       
       if (selectedReport && selectedReport.id === reportId) {
-        const updatedReplies = [...(selectedReport.replies || []), newReply];
-        setSelectedReport({
-          ...selectedReport,
-          replies: updatedReplies
-        });
+        const updatedReport = await reportsService.getReportById(reportId);
+        setSelectedReport(updatedReport);
+        
+        // Update the report in our local state
+        setAllReports(prev => 
+          prev.map(report => 
+            report.id === updatedReport.id ? updatedReport : report
+          )
+        );
       }
-      
-      setReports(prevReports => 
-        prevReports.map(report => 
-          report.id === reportId 
-            ? { ...report, replies: [...(report.replies || []), newReply] }
-            : report
-        )
-      );
       
       setReplyContent('');
       
@@ -188,9 +232,9 @@ const ReportsTable: React.FC = () => {
   };
 
   const handleMarkAllAsRead = async () => {
-    if (reports.length === 0) return;
+    if (allReports.length === 0) return;
     
-    const unreadReports = reports.filter(report => !report.isRead);
+    const unreadReports = allReports.filter(report => !report.isRead);
     if (unreadReports.length === 0) {
       setError('لا توجد تقارير غير مقروء');
       return;
@@ -204,15 +248,18 @@ const ReportsTable: React.FC = () => {
     setError(null);
 
     try {
+      // Mark all unread reports as read
       for (const report of unreadReports) {
         await reportsService.markAsRead(report.id);
       }
 
-      setReports(prevReports => 
-        prevReports.map(report => 
-          ({ ...report, isRead: true })
-        )
+      // Update local state
+      const updatedAllReports = allReports.map(report => 
+        ({ ...report, isRead: true })
       );
+      
+      setAllReports(updatedAllReports);
+      filterReportsByTab(updatedAllReports, activeTab);
 
       if (selectedReport) {
         setSelectedReport(prev => prev ? { ...prev, isRead: true } : null);
@@ -247,11 +294,33 @@ const ReportsTable: React.FC = () => {
     return content.substring(0, maxLength) + '...';
   };
 
-  const getUnreadCount = () => reports.filter(report => !report.isRead).length;
-  const getReadCount = () => reports.filter(report => report.isRead).length;
+  const getUnreadCount = () => allReports.filter(report => !report.isRead).length;
+  const getReadCount = () => allReports.filter(report => report.isRead).length;
+
+  const getRepliesFromReport = (report: Report) => {
+    const replies = [];
+    
+    if (report.replay) {
+      replies.push({
+        id: `reply-${report.id}`,
+        reportId: report.id,
+        content: report.replay,
+        createdAt: report.createdAt,
+        createdBy: 'Admin',
+        isAdminReply: true
+      });
+    }
+    
+    if (report.replies && report.replies.length > 0) {
+      replies.push(...report.replies);
+    }
+    
+    return replies;
+  };
 
   const debugReports = () => {
-    console.log('Current reports:', reports);
+    console.log('All reports:', allReports);
+    console.log('Filtered reports:', reports);
     console.log('Unread count:', getUnreadCount());
     console.log('Read count:', getReadCount());
   };
@@ -275,6 +344,10 @@ const ReportsTable: React.FC = () => {
   const bgRedLight = isDarkMode ? 'bg-red-900' : 'bg-red-50';
   const bgBlueLight = isDarkMode ? 'bg-blue-900' : 'bg-blue-50';
   const bgReply = isDarkMode ? 'bg-blue-900' : 'bg-blue-50';
+
+  const handleTabChange = (tab: 'all' | 'unread' | 'read') => {
+    setActiveTab(tab);
+  };
 
   return (
     <div className={`p-6 min-h-screen transition-colors duration-300 ${bgPrimary} ${textPrimary}`} dir="rtl">
@@ -361,7 +434,7 @@ const ReportsTable: React.FC = () => {
             </div>
             <div className="mr-3">
               <p className={`text-sm font-medium ${textSecondary}`}>إجمالي التقارير</p>
-              <p className="text-2xl font-bold">{reports.length}</p>
+              <p className="text-2xl font-bold">{allReports.length}</p>
             </div>
           </div>
         </div>
@@ -406,9 +479,9 @@ const ReportsTable: React.FC = () => {
                   ? 'border-blue-500 text-blue-600' 
                   : `${textMuted} border-transparent hover:${textPrimary}`
               }`}
-              onClick={() => setActiveTab('all')}
+              onClick={() => handleTabChange('all')}
             >
-              جميع التقارير ({reports.length})
+              جميع التقارير ({allReports.length})
             </button>
             <button
               className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
@@ -416,7 +489,7 @@ const ReportsTable: React.FC = () => {
                   ? 'border-blue-500 text-blue-600' 
                   : `${textMuted} border-transparent hover:${textPrimary}`
               }`}
-              onClick={() => setActiveTab('unread')}
+              onClick={() => handleTabChange('unread')}
             >
               غير المقروء ({getUnreadCount()})
             </button>
@@ -426,7 +499,7 @@ const ReportsTable: React.FC = () => {
                   ? 'border-blue-500 text-blue-600' 
                   : `${textMuted} border-transparent hover:${textPrimary}`
               }`}
-              onClick={() => setActiveTab('read')}
+              onClick={() => handleTabChange('read')}
             >
               المقروء ({getReadCount()})
             </button>
@@ -457,7 +530,7 @@ const ReportsTable: React.FC = () => {
             )}
             
             <button
-              onClick={loadReports}
+              onClick={loadAllReports}
               disabled={loading}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
@@ -688,7 +761,9 @@ const ReportsTable: React.FC = () => {
                     
                     <div>
                       <label className={`block text-sm ${textMuted}`}>عدد الردود:</label>
-                      <span className={`text-sm font-medium ${textPrimary}`}>{selectedReport.replies?.length || 0}</span>
+                      <span className={`text-sm font-medium ${textPrimary}`}>
+                        {getRepliesFromReport(selectedReport).length}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -717,7 +792,7 @@ const ReportsTable: React.FC = () => {
                   <h4 className={`text-lg font-medium ${textSecondary}`}>الردود</h4>
                   <div className="flex items-center gap-2">
                     <span className={`text-sm ${textMuted}`}>
-                      {selectedReport.replies?.length || 0} رد
+                      {getRepliesFromReport(selectedReport).length} رد
                     </span>
                     <button
                       onClick={loadRepliesForSelectedReport}
@@ -733,8 +808,8 @@ const ReportsTable: React.FC = () => {
 
                 {/* Replies List */}
                 <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
-                  {selectedReport.replies && selectedReport.replies.length > 0 ? (
-                    selectedReport.replies.map((reply, index) => (
+                  {getRepliesFromReport(selectedReport).length > 0 ? (
+                    getRepliesFromReport(selectedReport).map((reply, index) => (
                       <div 
                         key={reply.id || index}
                         className={`p-3 rounded-lg border transition-colors ${bgReply} ${borderColor}`}
@@ -788,7 +863,7 @@ const ReportsTable: React.FC = () => {
                   />
                   <div className="flex justify-end mt-3">
                     <button
-                      onClick={() => handleAddReply(selectedReport.id)}
+                      onClick={() => handleAddReply(selectedReport.id.toString())}
                       disabled={replyLoading || !replyContent.trim()}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
