@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { authService } from './auth';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -15,6 +14,17 @@ export interface Report {
   firstName?: string;
   lastName?: string;
   email?: string | null;
+  replies?: Reply[];
+  replay?: string;
+}
+
+export interface Reply {
+  id: string;
+  reportId: string;
+  content: string;
+  createdAt: string;
+  createdBy?: string;
+  isAdminReply?: boolean;
 }
 
 export interface ReportResponse {
@@ -37,167 +47,98 @@ export interface ReportsResponse {
   };
 }
 
-export interface UpdateReportRequest {
-  reportId: string;
-  reason: string;
-  content: string;
-  isRead: boolean;
-}
-
-export interface ReportsFilter {
-  isRead?: boolean;
-  page?: number;
-  pageSize?: number;
-}
-
-// Helper function to get auth headers
-const getAuthHeaders = () => {
-  const token = authService.getAuthToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+// Get auth token from localStorage
+const getAuthToken = (): string => {
+  return localStorage.getItem('accessToken') || '';
 };
 
-// Helper to transform API response to our Report format
-const transformReport = (reportData: any): Report => {
-  return {
-    id: reportData.id,
-    userId: reportData.userId,
-    reason: reportData.reason,
-    content: reportData.content,
-    createdAt: reportData.createdAt,
-    isRead: reportData.isRead,
-    userName: reportData.firstName && reportData.lastName 
-      ? `${reportData.firstName} ${reportData.lastName}`
-      : 'غير متوفر',
-    phoneNumber: reportData.phoneNumber || 'غير متوفر',
-    firstName: reportData.firstName,
-    lastName: reportData.lastName,
-    email: reportData.email
-  };
-};
+// Simple axios instance with auth header
+const api = axios.create({
+  baseURL: API_BASE_URL,
+});
 
-// Helper to enrich reports with user data from the detailed endpoint
-const enrichReportsWithUserData = async (reports: Report[]): Promise<Report[]> => {
-  const enrichedReports = await Promise.all(
-    reports.map(async (report) => {
-      try {
-        // Get detailed report data which includes user information
-        const detailedReport = await reportsService.getReportById(report.id);
-        return detailedReport;
-      } catch (error) {
-        console.error(`Error enriching report ${report.id}:`, error);
-        return report;
-      }
-    })
-  );
-  return enrichedReports;
-};
+// Add auth header to all requests
+api.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  config.headers.Accept = 'application/json';
+  return config;
+});
 
 export const reportsService = {
-  // Get all reports with optional filters
-  getAllReports: async (filter?: ReportsFilter): Promise<Report[]> => {
-    const params = new URLSearchParams();
-    
-    if (filter?.isRead !== undefined) {
-      params.append('isRead', filter.isRead.toString());
-    }
-    if (filter?.page) {
-      params.append('page', filter.page.toString());
-    }
-    if (filter?.pageSize) {
-      params.append('pageSize', filter.pageSize.toString());
-    }
-
-    const response = await axios.get<ReportsResponse>(
-      `${API_BASE_URL}/Reports?${params.toString()}`,
-      {
-        headers: {
-          ...getAuthHeaders(),
-          'Accept': '*/*'
-        }
-      }
-    );
-    
-    // Enrich with user data from detailed endpoint
-    return await enrichReportsWithUserData(response.data.value);
+  // Get all reports
+  getAllReports: async (): Promise<Report[]> => {
+    const response = await api.get<ReportsResponse>('/Reports');
+    return response.data.value;
   },
 
-  // Get unread reports
-  getUnreadReports: async (): Promise<Report[]> => {
-    const response = await axios.get<ReportsResponse>(
-      `${API_BASE_URL}/Reports?isRead=false`,
-      {
-        headers: {
-          ...getAuthHeaders(),
-          'Accept': '*/*'
-        }
-      }
-    );
-    return await enrichReportsWithUserData(response.data.value);
-  },
-
-  // Get read reports
-  getReadReports: async (): Promise<Report[]> => {
-    const response = await axios.get<ReportsResponse>(
-      `${API_BASE_URL}/Reports?isRead=true`,
-      {
-        headers: {
-          ...getAuthHeaders(),
-          'Accept': '*/*'
-        }
-      }
-    );
-    return await enrichReportsWithUserData(response.data.value);
-  },
-
+  // Get report by ID
   getReportById: async (id: string): Promise<Report> => {
-    const response = await axios.get<ReportResponse>(
-      `${API_BASE_URL}/Reports/${id}`,
-      {
-        headers: {
-          ...getAuthHeaders(),
-          'Accept': '*/*'
-        }
-      }
-    );
-    return transformReport(response.data.value);
+    const response = await api.get<ReportResponse>(`/Reports/${id}`);
+    return response.data.value;
   },
 
+  // Delete report
   deleteReport: async (id: string): Promise<void> => {
-    await axios.delete(
-      `${API_BASE_URL}/Reports/${id}`,
-      {
-        headers: getAuthHeaders()
-      }
-    );
+    await api.delete(`/Reports/${id}`);
   },
 
-  // Mark report as read - using PATCH with auth token
   markAsRead: async (id: string): Promise<void> => {
     try {
-      // First get the current report data to preserve reason and content
-      const currentReport = await reportsService.getReportById(id);
+      console.log('Marking report as read:', id);
       
-      const updateData: UpdateReportRequest = {
-        reportId: id,
-        reason: currentReport.reason || "ملاحظات المستخدم",
-        content: currentReport.content || "ملاحظات المستخدم", 
-        isRead: true
-      };
+      // Strategy 1: Try the direct PATCH endpoint
+      try {
+        await api.patch(`/Reports/${id}/read`);
+        console.log('✅ Report marked as read successfully via /read endpoint');
+        return;
+      } catch (firstError) {
+        console.log('First attempt failed, trying fallback...');
+        
+        // Strategy 2: Try general PATCH endpoint
+        await api.patch(`/Reports/${id}`, { isRead: true });
+        console.log('✅ Report marked as read successfully via general PATCH');
+      }
       
-      // Use PATCH method with the correct request body and auth token
-      await axios.patch(
-        `${API_BASE_URL}/Reports/${id}`,
-        updateData,
-        {
-          headers: {
-            ...getAuthHeaders(),
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-    } catch (error) {
-      console.error('Error marking report as read:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('All marking methods failed:', error);
+      
+      // Log detailed error information
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
+      
+      throw new Error('Failed to mark report as read via API, updated locally only');
     }
+  },
+  // Add reply to report
+  addReply: async (reportId: string, content: string): Promise<void> => {
+    // Send as JSON string (quoted string)
+    console.log('Adding reply with JSON string:', content);
+    
+    await api.post(`/Reports/${reportId}/replay`, JSON.stringify(content), {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('✅ Reply added successfully');
+  },
+
+  // Update report
+  updateReport: async (id: string, updateData: Partial<Report>): Promise<Report> => {
+    const response = await api.patch<ReportResponse>(`/Reports/${id}`, updateData);
+    return response.data.value;
+  },
+
+  // Search reports
+  searchReports: async (searchTerm: string): Promise<Report[]> => {
+    const response = await api.post<ReportsResponse>('/Reports/search', {
+      search: searchTerm
+    });
+    return response.data.value;
   }
 };
