@@ -14,14 +14,16 @@ public sealed class Review : Entity
 
     private Review() : base(Guid.NewGuid()) { }
 
-    private Review(Guid propertyId, Guid userId, Guid booking, int rating, string comment) : this()
+    private Review(Guid propertyId, Guid userId, Guid bookingId, int rating, string comment) : this()
     {
-        if (rating < 1 || rating > 5) throw new ArgumentOutOfRangeException(nameof(rating), "Rating must be between 1 and 5.");
-        if (string.IsNullOrWhiteSpace(comment)) throw new ArgumentException("Review comment cannot be empty.");
+        if (rating < 1 || rating > 5)
+            throw new ArgumentOutOfRangeException(nameof(rating), "Rating must be between 1 and 5.");
+        if (string.IsNullOrWhiteSpace(comment))
+            throw new ArgumentException("Review comment cannot be empty.");
 
         PropertyId = propertyId;
         UserId = userId;
-        BookingId = booking;
+        BookingId = bookingId;
         Rating = rating;
         Comment = comment;
         CreatedAt = DateTime.UtcNow;
@@ -29,7 +31,7 @@ public sealed class Review : Entity
         RaiseDomainEvent(new ReviewCreatedDomainEvent(Id, PropertyId, UserId, Rating, Comment, CreatedAt));
     }
 
-    public static Review Create(Guid propertyId, Guid userId,Guid bookingId, int rating, string comment)
+    public static Review Create(Guid propertyId, Guid userId, Guid bookingId, int rating, string comment)
         => new Review(propertyId, userId, bookingId, rating, comment);
 
     public void Update(int rating, string comment)
