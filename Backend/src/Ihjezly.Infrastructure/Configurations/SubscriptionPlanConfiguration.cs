@@ -16,7 +16,7 @@ internal sealed class SubscriptionPlanConfiguration : IEntityTypeConfiguration<S
         {
             price.Property(p => p.Amount)
                 .HasColumnName("PlanPrice_Amount")
-                .HasColumnType("decimal(18,2)");
+                .HasPrecision(18, 2);
 
             price.Property(p => p.CurrencyCode)
                 .HasColumnName("PlanPrice_Currency")

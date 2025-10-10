@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ihjezly.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250930182701_AddEmailVerificationCodesTable")]
-    partial class AddEmailVerificationCodesTable
+    [Migration("20251010182321_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -324,6 +324,32 @@ namespace Ihjezly.Infrastructure.Migrations
                     b.HasIndex("WalletId");
 
                     b.ToTable("Transactions", (string)null);
+                });
+
+            modelBuilder.Entity("Ihjezly.Domain.Users.EmailVerificationCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EmailVerificationCodes", (string)null);
                 });
 
             modelBuilder.Entity("Ihjezly.Domain.Users.User", b =>
@@ -692,6 +718,7 @@ namespace Ihjezly.Infrastructure.Migrations
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<decimal>("Amount")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("Price_Amount");
 
@@ -881,6 +908,7 @@ namespace Ihjezly.Infrastructure.Migrations
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<decimal>("Amount")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("PlanPrice_Amount");
 

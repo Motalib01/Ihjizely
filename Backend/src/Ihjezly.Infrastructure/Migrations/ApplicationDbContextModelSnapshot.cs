@@ -715,6 +715,7 @@ namespace Ihjezly.Infrastructure.Migrations
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<decimal>("Amount")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("Price_Amount");
 
@@ -904,6 +905,7 @@ namespace Ihjezly.Infrastructure.Migrations
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<decimal>("Amount")
+                                .HasPrecision(18, 2)
                                 .HasColumnType("decimal(18,2)")
                                 .HasColumnName("PlanPrice_Amount");
 

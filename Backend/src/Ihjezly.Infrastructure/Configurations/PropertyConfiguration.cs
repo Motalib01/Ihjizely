@@ -26,6 +26,7 @@ public sealed class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.OwnsOne(p => p.Price, price =>
         {
             price.Property(p => p.Amount)
+                .HasPrecision(18,2)
                 .HasColumnName("PropertyPrice_Amount");
 
             price.Property(p => p.CurrencyCode)

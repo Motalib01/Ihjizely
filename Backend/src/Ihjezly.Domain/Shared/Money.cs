@@ -1,6 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using Ihjezly.Domain.Shared;
+﻿using Ihjezly.Domain.Shared;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 
+[Owned]
 public sealed record Money
 {
     public decimal Amount { get; private set; }
