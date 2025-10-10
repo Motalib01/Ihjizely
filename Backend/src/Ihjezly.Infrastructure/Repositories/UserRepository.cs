@@ -67,6 +67,7 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 
+
     public void Remove(User user) => _context.Users.Remove(user);
 
     public async Task RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default)
