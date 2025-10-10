@@ -32,11 +32,19 @@ public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, U
 
     public async Task<Result<UserDto>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
-        var existingUser = await _userRepository.GetByPhoneNumberAsync(request.PhoneNumber, cancellationToken);
-        if (existingUser is not null)
-            return Result.Failure<UserDto>(UserErrors.PhoneNumberAlreadyInUse);
+        if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+        {
+            var existingUser = await _userRepository.GetByPhoneNumberAsync(request.PhoneNumber, cancellationToken);
+            if (existingUser is not null)
+                return Result.Failure<UserDto>(UserErrors.PhoneNumberAlreadyInUse);
+        }
 
-
+        if (!string.IsNullOrWhiteSpace(request.Email))
+        {
+            var existingUserByEmail = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
+            if (existingUserByEmail is not null)
+                return Result.Failure<UserDto>(UserErrors.EmailAlreadyInUse);
+        }
 
         var hashedPassword = _jwtService.HashPassword(request.Password);
 
@@ -44,22 +52,21 @@ public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, U
         {
             UserRole.Client => Client.Create(request.FirstName, request.LastName, request.PhoneNumber, request.Email, hashedPassword, false),
             UserRole.BusinessOwner => BusinessOwner.Create(request.FirstName, request.LastName, request.PhoneNumber, request.Email, hashedPassword, false),
-            UserRole.Admin => Admin.Create(request.FirstName, request.LastName, request.PhoneNumber, request.Email, hashedPassword,  false),
+            UserRole.Admin => Admin.Create(request.FirstName, request.LastName, request.PhoneNumber, request.Email, hashedPassword, false),
             _ => throw new ArgumentOutOfRangeException(nameof(request.Role), $"Unsupported role: {request.Role}")
         };
 
         await _userRepository.AddAsync(user, cancellationToken);
 
-        //Create a wallet for every user role
         var wallet = Wallet.Create(user.Id);
         _walletRepository.Add(wallet);
 
-        // Raise domain event (only once — don't publish manually)
         user.RaiseDomainEvent(new UserCreatedDomainEvent(user.Id, user.Role));
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(user.ToDto());
     }
+
 
 }
