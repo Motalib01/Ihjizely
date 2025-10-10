@@ -27,5 +27,12 @@ internal sealed class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne<Booking>()
+            .WithMany()
+            .HasForeignKey(r => r.BookingId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
+
+
     }
 }
