@@ -31,4 +31,8 @@ public static class UserErrors
     public static Error CannotDeleteWithBalance = new(
         "User.CannotDeleteWithBalance",
         "Can not Delet is have balance in his wallet");
+
+    public static Error EmailAlreadyInUse = new(
+        "User.EmailAlreadyInUse",
+        "The Email is already registered.");
 }
