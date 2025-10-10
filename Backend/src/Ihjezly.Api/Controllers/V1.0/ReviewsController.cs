@@ -32,8 +32,13 @@ public class ReviewsController : ControllerBase
         var enrichedCommand = command with { UserId = parsedUserId };
 
         var result = await _mediator.Send(enrichedCommand);
-        return Ok(result);
+
+        if (result.IsFailure)
+            return BadRequest(new { code = result.Error.Code, message = result.Error.Message });
+
+        return Ok(new { id = result.Value });
     }
+
 
     // GET: api/reviews/property/{id}
     [HttpGet("property/{id}")]
