@@ -30,7 +30,7 @@ public sealed class Review : Entity
     }
 
     public static Review Create(Guid propertyId, Guid userId,Guid bookingId, int rating, string comment)
-        => new Review(propertyId, bookingId, userId, rating, comment);
+        => new Review(propertyId, userId, bookingId, rating, comment);
 
     public void Update(int rating, string comment)
     {

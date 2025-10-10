@@ -1,4 +1,5 @@
-﻿using Ihjezly.Domain.Properties;
+﻿using Ihjezly.Domain.Booking;
+using Ihjezly.Domain.Properties;
 using Ihjezly.Domain.Reviews;
 using Ihjezly.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,12 @@ internal sealed class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.HasOne<Property>()
             .WithMany()
             .HasForeignKey(r => r.PropertyId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne<Booking>()
+            .WithMany()
+            .HasForeignKey(r => r.BookingId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
