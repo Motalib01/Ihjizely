@@ -83,19 +83,31 @@ public sealed class UpdateBookingStatusCommandHandler : ICommandHandler<UpdateBo
         }
         else if (request.NewStatus == BookingStatus.Confirmed)
         {
+            // 1. Deduct 20 LYD from client's wallet
+            var wallet = await _walletRepository.GetByUserIdAsync(clientId, cancellationToken);
+            if (wallet is null)
+                return Result.Failure(WalletErrors.NotFound);
 
-            // 1. Mark property dates as unavailable
+            var bookingFee = new Money(20, Currency.FromCode("LYD"));
+
+            wallet.DeductFunds(bookingFee);
+            _walletRepository.Update(wallet);
+
+            var paymentTransaction = Transaction.Create(wallet.Id, bookingFee, "Booking confirmation fee");
+            _transactionRepository.Add(paymentTransaction);
+
+            // 2. Mark property dates as unavailable
             property.AddUnavailableRange(booking.StartDate, booking.EndDate);
             _propertyRepository.Update(property);
 
-            // 2. Notification with optional owner phone
-            notificationMessage = $"تم قبول حجزك ل '{booking.Name}'.";
+            // 3. Notification with optional owner phone
+            notificationMessage = $"تم قبول حجزك ل '{booking.Name}'. تم خصم مبلغ {bookingFee.Amount} {bookingFee.Currency.Code} من محفظتك.";
             if (property is RestHouse || property is Apartment || property is Chalet)
             {
                 notificationMessage += $" للتواصل مع صاحب العقار: {owner.PhoneNumber}";
             }
 
-            // 3. Refuse all overlapping bookings
+            // 4. Refuse all overlapping bookings
             var overlappingBookings = await _bookingRepository.GetOverlappingBookingsAsync(
                 booking.PropertyId,
                 booking.StartDate,
@@ -122,6 +134,7 @@ public sealed class UpdateBookingStatusCommandHandler : ICommandHandler<UpdateBo
                 _bookingRepository.Update(otherBooking);
             }
         }
+
         else if (request.NewStatus == BookingStatus.Completed)
         {
             notificationMessage = $"تم إكمال حجزك ل '{booking.Name}'.";
