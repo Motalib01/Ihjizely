@@ -71,15 +71,6 @@ public sealed class UpdateBookingStatusCommandHandler : ICommandHandler<UpdateBo
             if (wallet is null)
                 return Result.Failure(WalletErrors.NotFound);
 
-            var refund = new Money(20, Currency.FromCode("LYD"));
-            wallet.AddFunds(refund);
-            _walletRepository.Update(wallet);
-
-            var refundTransaction = Transaction.Create(wallet.Id, refund, "Booking refund (rejected)");
-            _transactionRepository.Add(refundTransaction);
-
-            notificationMessage =
-                $"تم رفض حجزك ل '{booking.Name}'. تم رد مبلغ {refund.Amount} {refund.Currency.Code} إلى محفظتك.";
         }
         else if (request.NewStatus == BookingStatus.Confirmed)
         {
