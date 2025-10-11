@@ -67,10 +67,9 @@ internal sealed class GetAllPropertiesHandler : IQueryHandler<GetAllPropertiesQu
         foreach (var property in allProperties)
         {
             var owner = await _userRepository.GetByIdAsync(property.BusinessOwnerId, cancellationToken);
-            var firstName = owner?.FirstName ?? "Unknown";
-            var lastName = owner?.LastName ?? "Unknown";
+            var ownerFullName = owner?.FullName ?? "Unknown";
 
-            allDtos.Add(property.ToDto(firstName, lastName));
+            allDtos.Add(property.ToDto(ownerFullName));
         }
 
         return Result.Success(allDtos);

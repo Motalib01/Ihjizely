@@ -9,8 +9,7 @@ public static class UserMapper
         return new UserDto
         {
             Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
+            FullName = user.FullName,
             PhoneNumber = user.PhoneNumber,
             Email = user.Email,
             Role = user.Role.ToString(),

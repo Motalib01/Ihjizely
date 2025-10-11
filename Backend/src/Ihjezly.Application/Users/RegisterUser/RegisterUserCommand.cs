@@ -5,8 +5,7 @@ using Ihjezly.Domain.Users;
 namespace Ihjezly.Application.Users.RegisterUser;
 
 public sealed record RegisterUserCommand(
-    string FirstName,
-    string LastName,
+    string FullName,
     string? PhoneNumber,
     string? Email,
     string Password,

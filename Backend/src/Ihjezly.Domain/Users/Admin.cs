@@ -5,21 +5,20 @@ public sealed class Admin : User
 {
     private Admin() : base(Guid.NewGuid()) { }
 
-    private Admin(string firstName, string lastName, string phoneNumber, string email, string passwordHash)
-        : base(firstName, lastName, phoneNumber, email, passwordHash, UserRole.Admin)
+    private Admin(string fullName, string phoneNumber, string email, string passwordHash)
+        : base(fullName, phoneNumber, email, passwordHash, UserRole.Admin)
     {
         RaiseDomainEvent(new UserCreatedDomainEvent(Id, UserRole.Admin));
     }
 
     public static Admin Create(
-        string firstName,
-        string lastName,
+        string fullName,
         string phoneNumber,
         string email,
         string passwordHash,
         bool isVerified = false)
     {
-        var admin = new Admin(firstName, lastName,  phoneNumber, email, passwordHash);
+        var admin = new Admin(fullName,  phoneNumber, email, passwordHash);
         admin.SetIsVerified(isVerified);
         return admin;
     }

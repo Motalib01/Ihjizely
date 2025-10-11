@@ -8,8 +8,7 @@ public abstract class User : Entity
 {
     protected User(Guid id) : base(id) { }
 
-    public string FirstName { get; protected set; } = string.Empty;
-    public string LastName { get; protected set; } = string.Empty;
+    public string FullName { get; protected set; } = string.Empty;
     public string? PhoneNumber { get; protected set; } = string.Empty;
     public string? Email { get; protected set; } = string.Empty;
     public string Password { get; protected set; } = string.Empty;
@@ -25,16 +24,14 @@ public abstract class User : Entity
     public DateTime? BlockedAt { get; private set; }
 
     protected User(
-        string firstName,
-        string lastName,
+        string fullName,
         string phoneNumber,
         string email,
         string password,
         UserRole role)
         : this(Guid.NewGuid())
     {
-        FirstName = firstName;
-        LastName = lastName;
+        FullName = fullName;
         PhoneNumber = phoneNumber;
         Email = email;
         Password = password;
@@ -52,10 +49,9 @@ public abstract class User : Entity
         SetIsVerified(true);
     }
 
-    public void UpdateProfile(string firstName, string lastName, string phoneNumber, string email, Image userProfilePicture)
+    public void UpdateProfile(string fullName, string phoneNumber, string email, Image userProfilePicture)
     {
-        FirstName = firstName;
-        LastName = lastName;
+        FullName = fullName;
         PhoneNumber = phoneNumber;
         Email = email;
         UserProfilePicture = userProfilePicture;

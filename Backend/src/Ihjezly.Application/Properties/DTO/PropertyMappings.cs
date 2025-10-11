@@ -64,19 +64,19 @@ public static class PropertyMappings
     }
 
     // ===== Base Property fallback =====
-    public static PropertyDto ToDto(this Property property, string businessOwnerFirsName, string businessOwnerLastName) =>
+    public static PropertyDto ToDto(this Property property, string businessOwnerFullName) =>
         property switch
         {
-            Apartment a => a.ToDto(businessOwnerFirsName, businessOwnerLastName),
-            Chalet c => c.ToDto(businessOwnerFirsName, businessOwnerLastName),
-            HotelRoom h => h.ToDto(businessOwnerFirsName, businessOwnerLastName),
-            HotelApartment ha => ha.ToDto(businessOwnerFirsName, businessOwnerLastName),
-            EventHallLarge l => l.ToDto(businessOwnerFirsName, businessOwnerLastName),
-            EventHallSmall s => s.ToDto(businessOwnerFirsName, businessOwnerLastName),
-            MeetingRoom m => m.ToDto(businessOwnerFirsName, businessOwnerLastName),
-            Resort r => r.ToDto(businessOwnerFirsName, businessOwnerLastName),
-            RestHouse rs => rs.ToDto(businessOwnerFirsName, businessOwnerLastName),
-            VillaEvent v => v.ToDto(businessOwnerFirsName, businessOwnerLastName),
+            Apartment a => a.ToDto(businessOwnerFullName),
+            Chalet c => c.ToDto(businessOwnerFullName),
+            HotelRoom h => h.ToDto(businessOwnerFullName),
+            HotelApartment ha => ha.ToDto(businessOwnerFullName),
+            EventHallLarge l => l.ToDto(businessOwnerFullName),
+            EventHallSmall s => s.ToDto(businessOwnerFullName),
+            MeetingRoom m => m.ToDto(businessOwnerFullName),
+            Resort r => r.ToDto(businessOwnerFullName),
+            RestHouse rs => rs.ToDto(businessOwnerFullName),
+            VillaEvent v => v.ToDto(businessOwnerFullName),
             _ => throw new InvalidOperationException($"Unknown property type: {property.GetType().Name}")
         };
 

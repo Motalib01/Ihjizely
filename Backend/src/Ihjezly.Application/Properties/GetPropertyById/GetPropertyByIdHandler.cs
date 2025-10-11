@@ -33,9 +33,8 @@ internal sealed class GetPropertyByIdHandler<TProperty, TDetails>
 
         // Fetch owner info
         var owner = await _userRepository.GetByIdAsync(property.BusinessOwnerId, cancellationToken);
-        var ownerFirstName = owner?.FirstName ?? "Unknown";
-        var ownerLastName = owner?.LastName ?? "Unknown";
+        var ownerFullName = owner?.FullName ?? "Unknown";
 
-        return Result.Success<PropertyDto?>(property.ToDto(ownerFirstName, ownerLastName));
+        return Result.Success<PropertyDto?>(property.ToDto(ownerFullName));
     }
 }

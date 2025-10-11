@@ -2,8 +2,7 @@
 
 public sealed record CurrentUserDto(
     Guid Id,
-    string FirstName,
-    string LastName,
+    string FullName,
     string PhoneNumber,
     string Role,
     bool IsVerified,

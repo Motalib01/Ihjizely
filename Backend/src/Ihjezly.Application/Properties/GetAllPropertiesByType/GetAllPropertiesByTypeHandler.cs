@@ -32,10 +32,9 @@ internal sealed class GetAllPropertiesByTypeHandler<TProperty, TDetails>
         foreach (var property in properties)
         {
             var owner = await _userRepository.GetByIdAsync(property.BusinessOwnerId, cancellationToken);
-            var ownerFirstName = owner?.FirstName ?? "Unknown";
-            var ownerLastName = owner?.LastName ?? "Unknown";
+            var ownerFullName = owner?.FullName ?? "Unknown";
 
-            dtos.Add(property.ToDto(ownerFirstName, ownerLastName));
+            dtos.Add(property.ToDto(ownerFullName));
         }
 
         return Result.Success(dtos);

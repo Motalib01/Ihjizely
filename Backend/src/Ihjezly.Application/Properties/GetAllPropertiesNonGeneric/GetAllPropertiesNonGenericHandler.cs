@@ -31,11 +31,10 @@ internal sealed class GetAllPropertiesNonGenericHandler
         foreach (var property in properties)
         {
             var owner = await _userRepository.GetByIdAsync(property.BusinessOwnerId, cancellationToken);
-            var ownerLastName = owner?.LastName ?? "Unknown";
-            var ownerFirstName = owner?.FirstName ?? "Unknown";
+            var ownerFullName = owner?.FullName ?? "Unknown";
 
 
-            dtos.Add(property.ToDto(ownerFirstName, ownerLastName));
+            dtos.Add(property.ToDto(ownerFullName));
         }
 
         return Result.Success(dtos);

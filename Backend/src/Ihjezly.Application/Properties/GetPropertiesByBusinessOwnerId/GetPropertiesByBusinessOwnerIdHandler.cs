@@ -28,11 +28,10 @@ internal sealed class GetPropertiesByBusinessOwnerIdHandler
 
         // Fetch the owner once since all properties belong to them
         var owner = await _userRepository.GetByIdAsync(query.BusinessOwnerId, cancellationToken);
-        var ownerFirstName = owner?.FirstName ?? "Unknown";
-        var ownerLastName = owner?.LastName ?? "Unknown";
+        var ownerFullName = owner?.FullName ?? "Unknown";
 
         var dtos = properties
-            .Select(p => p.ToDto(ownerFirstName, ownerLastName))
+            .Select(p => p.ToDto(ownerFullName))
             .ToList();
 
         return Result.Success(dtos);

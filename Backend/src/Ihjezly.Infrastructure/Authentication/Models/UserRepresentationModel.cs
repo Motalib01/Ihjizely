@@ -28,7 +28,7 @@ internal sealed class UserRepresentationModel
 
     public string[] Groups { get; set; }
 
-    public string FirstName { get; set; }
+    public string FullName { get; set; }
 
     public string LastName { get; set; }
 
@@ -49,8 +49,7 @@ internal sealed class UserRepresentationModel
     internal static UserRepresentationModel FromUser(User user) =>
         new()
         {
-            FirstName = user.FirstName,
-            LastName = user.LastName,
+            FullName = user.FullName,
             Username = user.PhoneNumber,
             Enabled = true,
             CreatedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),

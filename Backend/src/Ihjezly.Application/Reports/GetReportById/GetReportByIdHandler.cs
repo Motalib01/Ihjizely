@@ -32,8 +32,7 @@ namespace Ihjezly.Application.Reports.GetReportById
                 report.Replay,
                 report.CreatedAt,
                 report.User.Id,
-                report.User.FirstName,
-                report.User.LastName,
+                report.User.FullName,
                 report.User.PhoneNumber,
                 report.User.Email,
                 report.IsRead

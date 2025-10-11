@@ -33,10 +33,9 @@ internal sealed class GetAllPropertiesByStatusHandler
         foreach (var p in properties)
         {
             var owner = await _userRepository.GetByIdAsync(p.BusinessOwnerId, cancellationToken);
-            var firstName = owner?.FirstName ?? "Unknown";
-            var lastName = owner?.LastName ?? "Unknown";
+            var firstName = owner?.FullName ?? "Unknown";
 
-            dtos.Add(p.ToDto(firstName, lastName));
+            dtos.Add(p.ToDto(firstName));
         }
 
         return Result.Success(dtos);

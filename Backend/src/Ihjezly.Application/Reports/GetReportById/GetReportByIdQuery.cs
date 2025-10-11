@@ -12,8 +12,7 @@ public sealed record ReportDetailsResponse(
     string Replay,
     DateTime CreatedAt,
     Guid UserId,
-    string FirstName,
-    string LastName,
+    string FullName,
     string PhoneNumber,
     string Email,
     bool IsRead

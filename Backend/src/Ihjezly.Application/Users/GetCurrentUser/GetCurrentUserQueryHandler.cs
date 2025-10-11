@@ -23,8 +23,7 @@ internal sealed class GetCurrentUserQueryHandler : IQueryHandler<GetCurrentUserQ
 
         var dto = new CurrentUserDto(
             user.Id,
-            user.FirstName,
-            user.LastName,
+            user.FullName,
             user.PhoneNumber,
             user.Role.ToString(),
             user.IsVerified,

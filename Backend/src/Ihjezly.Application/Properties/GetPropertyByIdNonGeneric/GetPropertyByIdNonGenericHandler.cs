@@ -32,10 +32,9 @@ internal sealed class GetPropertyByIdNonGenericHandler
 
         // Fetch owner info
         var owner = await _userRepository.GetByIdAsync(property.BusinessOwnerId, cancellationToken);
-        var ownerFirstName = owner?.FirstName ?? "Unknown";
-        var ownerLastName = owner?.LastName ?? "Unknown";
+        var ownerFullName = owner?.FullName ?? "Unknown";
 
-        var dto = property.ToDto(ownerFirstName, ownerLastName);
+        var dto = property.ToDto(ownerFullName);
         return Result.Success(dto);
     }
 }

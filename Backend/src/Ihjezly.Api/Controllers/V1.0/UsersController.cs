@@ -103,8 +103,7 @@ public class UsersController : ControllerBase
 
         var command = new UpdateUserCommand(
             parsedUserId,
-            form.FirstName,
-            form.LastName,
+            form.FullName,
             form.PhoneNumber,
             form.Email,
             form.ProfileImageFile

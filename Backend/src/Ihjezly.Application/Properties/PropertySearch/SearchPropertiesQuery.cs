@@ -32,10 +32,9 @@ internal sealed class SearchPropertiesHandler : IQueryHandler<SearchPropertiesQu
         {
             // Get business owner info
             var owner = await _userRepository.GetByIdAsync(property.BusinessOwnerId, cancellationToken);
-            var firstName = owner?.FirstName ?? string.Empty;
-            var lastName = owner?.LastName ?? string.Empty;
+            var ownerFullName = owner?.FullName ?? string.Empty;
 
-            dtos.Add(property.ToDto(firstName, lastName));
+            dtos.Add(property.ToDto(ownerFullName));
         }
 
         return Result.Success(dtos);

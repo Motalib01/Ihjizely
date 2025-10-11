@@ -49,8 +49,7 @@ internal sealed class UpdateUserCommandHandler : ICommandHandler<UpdateUserComma
         var profilePicture = imageUrl is not null ? Image.Create(imageUrl) : user.UserProfilePicture;
 
         user.UpdateProfile(
-            request.FirstName,
-            request.LastName,
+            request.FullName,
             request.PhoneNumber,
             request.Email,
             profilePicture
