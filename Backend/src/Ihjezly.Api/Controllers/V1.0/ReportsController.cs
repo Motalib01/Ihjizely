@@ -3,6 +3,7 @@ using Ihjezly.Application.Reports.CreateReport;
 using Ihjezly.Application.Reports.DeleteReport;
 using Ihjezly.Application.Reports.GetAllReports;
 using Ihjezly.Application.Reports.GetReportById;
+using Ihjezly.Application.Reports.GetUserReports;
 using Ihjezly.Application.Reports.MarkReportAsRead;
 using Ihjezly.Application.Reports.ReplayReport;
 using Ihjezly.Application.Reports.UpdateReport;
@@ -70,6 +71,20 @@ public class ReportsController : ControllerBase
 
         if (result.IsFailure)
             return BadRequest(result.Error);
+
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet("my")]
+    public async Task<IActionResult> GetMyReports()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrWhiteSpace(userId) || !Guid.TryParse(userId, out var parsedUserId))
+            return Unauthorized();
+
+        var result = await _mediator.Send(new GetUserReportsQuery(parsedUserId));
 
         return Ok(result);
     }

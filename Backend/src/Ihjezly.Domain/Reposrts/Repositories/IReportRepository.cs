@@ -8,6 +8,8 @@ public interface IReportRepository
 
     Task<Report?> GetByIdWithUserAsync(Guid id, CancellationToken cancellationToken);
     Task<IReadOnlyList<Report>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Report>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+
 
     void Add(Report report);
     void Update(Report report);
