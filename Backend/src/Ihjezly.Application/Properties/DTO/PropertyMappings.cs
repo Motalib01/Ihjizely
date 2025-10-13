@@ -32,7 +32,7 @@ public static class PropertyMappings
         new(image.Url, image.IsMain);
 
     // ===== Generic PropertyWithDetails<T> Mapping =====
-    public static PropertyDto ToDto<TDetails>(this PropertyWithDetails<TDetails> property, string businessOwnerFirstName, string businessOwnerLastName)
+    public static PropertyDto ToDto<TDetails>(this PropertyWithDetails<TDetails> property, string businessOwnerFullName)
     {
         var facilities = property.SupportsFacilities
             ? property.Facilities.Select(f => f.ToDto()).ToList()
@@ -57,8 +57,7 @@ public static class PropertyMappings
             JsonSerializer.SerializeToElement(property.Details),
             property.Images.Select(i => i.ToDto()).ToList(),
             property.BusinessOwnerId,
-            businessOwnerFirstName,
-            businessOwnerLastName
+            businessOwnerFullName
 
         );
     }

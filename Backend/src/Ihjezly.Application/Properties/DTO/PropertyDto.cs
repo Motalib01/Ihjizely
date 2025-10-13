@@ -22,6 +22,5 @@ public sealed record PropertyDto(
     JsonElement? Details,
     List<ImageDto> Images,
     Guid BusinessOwnerId,
-    string BusinessOwnerFirstName,
-    string BusinessOwnerLastName
+    string BusinessOwnerFullName
 );
