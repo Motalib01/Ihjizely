@@ -31,8 +31,7 @@ export type Subscription = {
 };
 export type UserDetails = {
     id: string;
-    firstName: string;
-    lastName: string;
+    fullName:string;
     phoneNumber: string;
     role: string;
     isVerified: boolean;

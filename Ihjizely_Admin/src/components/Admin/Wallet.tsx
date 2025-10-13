@@ -26,8 +26,7 @@ import { cn } from '@/lib/utils';
 // Define user type
 interface User {
   id: string;
-  firstName: string;
-  lastName: string;
+  fullName:string;
   email: string;
   avatar: string;
   hasWallet: boolean;
@@ -111,7 +110,7 @@ export default function WalletManagement() {
       const walletRow: WalletRow = {
         id: walletData.length + 1,
         walletId: newWallet.walletId,
-        name: `${selectedUser.firstName} ${selectedUser.lastName}`,
+        name: `${selectedUser.fullName}`,
         balance: `${newWallet.amount} ${newWallet.currency}`,
         registrationDate: new Date().toLocaleDateString('en-GB'),
         email: selectedUser.email
@@ -127,7 +126,7 @@ export default function WalletManagement() {
         )
       );
       
-      toast.success(`تم إنشاء محفظة لـ ${selectedUser.firstName} ${selectedUser.lastName}`);
+      toast.success(`تم إنشاء محفظة لـ ${selectedUser.fullName}`);
       setIsDialogOpen(false);
     } catch (error) {
       toast.error("Failed to create wallet");
@@ -206,7 +205,7 @@ export default function WalletManagement() {
                             "transition-colors duration-300",
                             isDarkMode ? "bg-gray-600 text-gray-300" : "bg-gray-100 text-gray-600"
                           )}>
-                            {selectedUser.firstName.charAt(0)}{selectedUser.lastName.charAt(0)}
+                            {selectedUser.fullName}
                           </AvatarFallback>
                         </Avatar>
                         <div className="text-right">
@@ -214,7 +213,7 @@ export default function WalletManagement() {
                             "font-medium transition-colors duration-300",
                             isDarkMode ? "text-white" : "text-gray-900"
                           )}>
-                            {selectedUser.firstName} {selectedUser.lastName}
+                            {selectedUser.fullName}
                           </p>
                           <p className={cn(
                             "text-sm transition-colors duration-300",
@@ -273,7 +272,7 @@ export default function WalletManagement() {
                             "transition-colors duration-300",
                             isDarkMode ? "bg-gray-600 text-gray-300" : "bg-gray-100 text-gray-600"
                           )}>
-                            {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                            {user.fullName}
                           </AvatarFallback>
                         </Avatar>
                         <div className="text-right flex-1">
@@ -281,7 +280,7 @@ export default function WalletManagement() {
                             "font-medium transition-colors duration-300",
                             isDarkMode ? "text-white" : "text-gray-900"
                           )}>
-                            {user.firstName} {user.lastName}
+                            {user.fullName}
                             {user.hasWallet && (
                               <span className={cn(
                                 "ml-2 text-xs px-2 py-1 rounded transition-colors duration-300",

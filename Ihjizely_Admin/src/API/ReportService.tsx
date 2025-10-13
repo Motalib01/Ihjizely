@@ -11,8 +11,7 @@ export interface Report {
   isRead?: boolean;
   userName?: string;
   phoneNumber?: string;
-  firstName?: string;
-  lastName?: string;
+  fullName?:string;
   email?: string | null;
   replies?: Reply[];
   replay?: string;

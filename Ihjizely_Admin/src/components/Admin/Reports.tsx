@@ -103,7 +103,7 @@ const ReportsTable: React.FC = () => {
       const searchResults = allReports.filter(report => 
         report.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        report.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        report.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.phoneNumber?.includes(searchTerm)
       );
       
@@ -600,7 +600,7 @@ const ReportsTable: React.FC = () => {
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className={`text-sm font-medium ${textPrimary}`}>
-                        {report.userName || 'غير متوفر'}
+                        {report.fullName || 'غير متوفر'}
                       </div>
                       {report.email && (
                         <div className={`text-xs mt-1 ${textMuted}`}>{report.email}</div>
@@ -726,7 +726,7 @@ const ReportsTable: React.FC = () => {
                   <div className="space-y-2">
                     <div>
                       <label className={`block text-sm ${textMuted}`}>الاسم الكامل:</label>
-                      <span className={`text-sm font-medium ${textPrimary}`}>{selectedReport.userName || 'غير متوفر'}</span>
+                      <span className={`text-sm font-medium ${textPrimary}`}>{selectedReport.fullName || 'غير متوفر'}</span>
                     </div>
                     <div>
                       <label className={`block text-sm ${textMuted}`}>رقم الهاتف:</label>

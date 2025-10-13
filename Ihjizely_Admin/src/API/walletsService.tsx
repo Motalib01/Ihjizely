@@ -63,7 +63,7 @@ export const walletsService = {
           walletRows.push({
             id: this.convertUserIdToNumber(wallet.userId),
             walletId: wallet.walletId, // Add this line
-            name: `${userDetails.firstName || ''} ${userDetails.lastName || ''}`.trim() || 'Unknown User',
+            name: `${userDetails.fullName}`.trim() || 'Unknown User',
             balance: `${wallet.amount} ${wallet.currency}`,
             registrationDate: new Date().toLocaleDateString(),
             email: userDetails.email || `${wallet.userId.substring(0, 8)}@example.com`
