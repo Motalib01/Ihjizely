@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { reportsService, Report } from '../../API/ReportService';
+import { usersService } from '../../API/UsersService';
 import { useDarkMode } from '../DarkModeContext';
 
 const ReportsTable: React.FC = () => {
   const { isDarkMode } = useDarkMode();
   const [reports, setReports] = useState<Report[]>([]);
-  const [allReports, setAllReports] = useState<Report[]>([]); // Store all reports from backend
+  const [allReports, setAllReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'read'>('all');
@@ -14,12 +15,13 @@ const ReportsTable: React.FC = () => {
   const [replyContent, setReplyContent] = useState('');
   const [replyLoading, setReplyLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [userDetailsMap, setUserDetailsMap] = useState<Map<string, { fullName: string; phoneNumber: string }>>(new Map());
 
   useEffect(() => {
     loadAllReports();
   }, []);
 
-  // Load all reports from backend
+  // Load all reports from backend and fetch user details
   const loadAllReports = async () => {
     setLoading(true);
     setError(null);
@@ -28,8 +30,12 @@ const ReportsTable: React.FC = () => {
       console.log('Loading all reports from backend...');
       const data = await reportsService.getAllReports();
       console.log(`Loaded ${data.length} reports from backend`);
+      
       setAllReports(data);
       filterReportsByTab(data, activeTab);
+      
+      await fetchUserDetailsForReports(data);
+      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'حدث خطأ غير متوقع';
       setError(errorMessage);
@@ -37,6 +43,57 @@ const ReportsTable: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Fetch user details for all reports
+  const fetchUserDetailsForReports = async (reportsData: Report[]) => {
+    try {
+      const uniqueUserIds = [...new Set(reportsData.map(report => report.userId))];
+      console.log('Fetching user details for IDs:', uniqueUserIds);
+      
+      const userDetails = new Map<string, { fullName: string; phoneNumber: string }>();
+      
+      for (const userId of uniqueUserIds) {
+        try {
+          const user = await usersService.getUserById(userId);
+          userDetails.set(userId, {
+            fullName: user.fullName,
+            phoneNumber: user.phoneNumber
+          });
+          console.log(`Fetched user: ${user.fullName} for ID: ${userId}`);
+        } catch (userError) {
+          console.error(`Failed to fetch user ${userId}:`, userError);
+          userDetails.set(userId, {
+            fullName: 'مستخدم غير معروف',
+            phoneNumber: 'غير متوفر'
+          });
+        }
+      }
+      
+      setUserDetailsMap(userDetails);
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
+  };
+
+  // Get user details for a report
+  const getUserDetails = (report: Report) => {
+    return userDetailsMap.get(report.userId) || {
+      fullName: 'مستخدم غير معروف',
+      phoneNumber: 'غير متوفر'
+    };
+  };
+
+  // Get display name for report
+  const getDisplayName = (report: Report): string => {
+    const userDetails = getUserDetails(report);
+    return userDetails.fullName;
+  };
+
+  // Get display phone number for report
+  const getDisplayPhone = (report: Report): string => {
+    const userDetails = getUserDetails(report);
+    return userDetails.phoneNumber;
   };
 
   // Filter reports based on active tab
@@ -70,7 +127,6 @@ const ReportsTable: React.FC = () => {
       const updatedReport = await reportsService.getReportById(selectedReport.id);
       setSelectedReport(updatedReport);
       
-      // Also update the report in our local state
       setAllReports(prev => 
         prev.map(report => 
           report.id === updatedReport.id ? updatedReport : report
@@ -99,12 +155,11 @@ const ReportsTable: React.FC = () => {
       setError(errorMessage);
       console.error('Error searching reports:', err);
       
-      // Fallback to client-side search
       const searchResults = allReports.filter(report => 
         report.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        report.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        report.phoneNumber?.includes(searchTerm)
+        getDisplayName(report)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        getDisplayPhone(report)?.includes(searchTerm)
       );
       
       filterReportsByTab(searchResults, activeTab);
@@ -125,7 +180,6 @@ const ReportsTable: React.FC = () => {
     try {
       await reportsService.markAsRead(id);
       
-      // Update both allReports and filtered reports
       const updatedAllReports = allReports.map(report => 
         report.id === id ? { ...report, isRead: true } : report
       );
@@ -156,7 +210,6 @@ const ReportsTable: React.FC = () => {
       
       console.error('Error marking report as read:', err);
       
-      // Optimistic update
       const updatedAllReports = allReports.map(report => 
         report.id === id ? { ...report, isRead: true } : report
       );
@@ -179,7 +232,6 @@ const ReportsTable: React.FC = () => {
       
       try {
         await reportsService.deleteReport(id);
-        // Reload all reports from backend to ensure consistency
         await loadAllReports();
         
         if (selectedReport?.id === id) {
@@ -212,7 +264,6 @@ const ReportsTable: React.FC = () => {
         const updatedReport = await reportsService.getReportById(reportId);
         setSelectedReport(updatedReport);
         
-        // Update the report in our local state
         setAllReports(prev => 
           prev.map(report => 
             report.id === updatedReport.id ? updatedReport : report
@@ -248,12 +299,10 @@ const ReportsTable: React.FC = () => {
     setError(null);
 
     try {
-      // Mark all unread reports as read
       for (const report of unreadReports) {
         await reportsService.markAsRead(report.id);
       }
 
-      // Update local state
       const updatedAllReports = allReports.map(report => 
         ({ ...report, isRead: true })
       );
@@ -323,6 +372,7 @@ const ReportsTable: React.FC = () => {
     console.log('Filtered reports:', reports);
     console.log('Unread count:', getUnreadCount());
     console.log('Read count:', getReadCount());
+    console.log('User details map:', userDetailsMap);
   };
 
   // Dark mode classes
@@ -600,14 +650,11 @@ const ReportsTable: React.FC = () => {
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className={`text-sm font-medium ${textPrimary}`}>
-                        {report.fullName || 'غير متوفر'}
+                        {getDisplayName(report)}
                       </div>
-                      {report.email && (
-                        <div className={`text-xs mt-1 ${textMuted}`}>{report.email}</div>
-                      )}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${textPrimary}`}>
-                      {report.phoneNumber || 'غير متوفر'}
+                      {getDisplayPhone(report)}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${textPrimary}`}>
                       {report.reason || 'غير محدد'}
@@ -726,18 +773,16 @@ const ReportsTable: React.FC = () => {
                   <div className="space-y-2">
                     <div>
                       <label className={`block text-sm ${textMuted}`}>الاسم الكامل:</label>
-                      <span className={`text-sm font-medium ${textPrimary}`}>{selectedReport.fullName || 'غير متوفر'}</span>
+                      <span className={`text-sm font-medium ${textPrimary}`}>
+                        {getDisplayName(selectedReport)}
+                      </span>
                     </div>
                     <div>
                       <label className={`block text-sm ${textMuted}`}>رقم الهاتف:</label>
-                      <span className={`text-sm font-medium ${textPrimary}`}>{selectedReport.phoneNumber || 'غير متوفر'}</span>
+                      <span className={`text-sm font-medium ${textPrimary}`}>
+                        {getDisplayPhone(selectedReport)}
+                      </span>
                     </div>
-                    {selectedReport.email && (
-                      <div>
-                        <label className={`block text-sm ${textMuted}`}>البريد الإلكتروني:</label>
-                        <span className={`text-sm font-medium ${textPrimary}`}>{selectedReport.email}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
 
