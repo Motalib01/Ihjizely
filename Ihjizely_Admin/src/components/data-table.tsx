@@ -109,7 +109,7 @@ export const unitSchema = z.object({
   subscriptionStatus: z.boolean(),
   registrationDate: z.string(),
   premiumSubscription: z.boolean(),
-  businessOwnerfullName: z.string(),
+  businessOwnerFullName: z.string(),
 });
 
 export const subscriptionSchema = z.object({
@@ -968,7 +968,7 @@ export function UnitTable({ data }: UnitTableProps) {
       header: "صاحب العمل",
       cell: ({ row }) => (
         <span className={isDarkMode ? "dark:text-gray-100" : ""}>
-          {row.original.businessOwnerfullName}
+          {row.original.businessOwnerFullName}
         </span>
       ),
     },

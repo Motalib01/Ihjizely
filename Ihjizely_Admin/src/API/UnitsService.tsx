@@ -32,7 +32,7 @@ export type Property = {
     details: Record<string, any>;
     images?: Array<{ url: string }>;
     status?: PropertyStatus;
-    businessOwnerfullName: string;
+    businessOwnerFullName: string;
     isAd:boolean;
 };
 
@@ -49,7 +49,7 @@ export type UnitRow = {
   registrationDate: string;
   premiumSubscription: boolean;
   propertyType: string;
-  businessOwnerfullName: string;
+  businessOwnerFullName: string;
 };
 
 export const unitsService = {
@@ -272,7 +272,7 @@ export const unitsService = {
             registrationDate: new Date(property.createdAt).toLocaleDateString(),
             premiumSubscription: property.discount ? property.discount.value > 0 : false,
             propertyType: property.type,
-            businessOwnerfullName: property.businessOwnerfullName,
+            businessOwnerFullName: property.businessOwnerFullName,
         };
     },
 
