@@ -12,6 +12,7 @@ using Ihjezly.Domain.Properties.Repositories;
 using Ihjezly.Domain.Reposrts.Repositories;
 using Ihjezly.Domain.Users.Repositories;
 using Ihjezly.Infrastructure.Authentication;
+using Ihjezly.Infrastructure.BackgroundJobs;
 using Ihjezly.Infrastructure.Clock;
 using Ihjezly.Infrastructure.Data;
 using Ihjezly.Infrastructure.Files;
@@ -42,6 +43,9 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddHostedService<BookingCompletionService>();
+
+
         //Payment Service
         services.Configure<EdfaliOptions>(configuration.GetSection("EdfaliOptions"));
         services.AddHttpClient<IEdfaliPaymentService, EdfaliPaymentService>();

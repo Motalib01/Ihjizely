@@ -69,5 +69,12 @@ internal sealed class BookingRepository : IBookingRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Booking>> GetExpiredConfirmedBookingsAsync(DateTime currentTime, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Bookings
+            .Where(b => b.Status == BookingStatus.Confirmed && b.EndDate < currentTime)
+            .ToListAsync(cancellationToken);
+    }
+
 
 }

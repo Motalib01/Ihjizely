@@ -10,6 +10,8 @@ public interface IBookingRepository
     Task<List<Booking>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<List<Booking>> GetByBusinessOwnerIdAsync(Guid businessOwnerId, CancellationToken cancellationToken = default);
     Task<List<Booking>> GetByClientIdAsync(Guid clientId, CancellationToken cancellationToken = default);
+    Task<List<Booking>> GetExpiredConfirmedBookingsAsync(DateTime currentTime, CancellationToken cancellationToken = default);
+
 
     Task<List<Booking>> GetOverlappingBookingsAsync(
         Guid propertyId,
