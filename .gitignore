@@ -1,5 +1,5 @@
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.js
 
@@ -21,3 +21,4 @@ yarn-error.log*
 # pnpm-lock.yaml # Uncomment if using pnpm
 # pnpm-debug.log* # Uncomment if using pnpm
 # .vite/ # Uncomment if you have a .vite directory for caching or other purposes
+.fake

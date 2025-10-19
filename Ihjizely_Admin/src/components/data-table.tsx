@@ -109,8 +109,7 @@ export const unitSchema = z.object({
   subscriptionStatus: z.boolean(),
   registrationDate: z.string(),
   premiumSubscription: z.boolean(),
-  businessOwnerFirstName: z.string(),
-  businessOwnerLastName: z.string(),
+  businessOwnerFullName: z.string(),
 });
 
 export const subscriptionSchema = z.object({
@@ -969,7 +968,7 @@ export function UnitTable({ data }: UnitTableProps) {
       header: "صاحب العمل",
       cell: ({ row }) => (
         <span className={isDarkMode ? "dark:text-gray-100" : ""}>
-          {row.original.businessOwnerFirstName} {row.original.businessOwnerLastName}
+          {row.original.businessOwnerFullName}
         </span>
       ),
     },
@@ -1352,7 +1351,7 @@ export function SubscriptionTable({ }: { data: SubscriptionRow[] }) {
               const userDetails = await subscriptionsService.getUserDetails(sub.businessOwnerId);
               return {
                 ...sub,
-                ownerName: `${userDetails.firstName} ${userDetails.lastName}`
+                ownerName: `${userDetails.fullName}`
               };
             } catch (error) {
               console.error(`Failed to fetch user details for ${sub.businessOwnerId}`, error);

@@ -5,8 +5,7 @@ import { authService } from './auth';
 export type ApiUser = {
   [x: string]: any;
   id: string;
-  firstName: string;
-  lastName: string;
+  fullName:string;
   phoneNumber: string;
   role: string;
   profilePictureUrl: string;
@@ -41,7 +40,7 @@ export const usersService = {
   
       return response.data.map((user) => ({
         id: user.id,
-        name: `${user.firstName} ${user.lastName}`,
+        name: user.fullName,
         username: user.phoneNumber,
         role: user.role,
         email: `${user.phoneNumber}@example.com`,
@@ -58,7 +57,7 @@ export const usersService = {
   },
 
   async getUserById(userId: string): Promise<{
-    [x: string]: string; firstName: string; lastName: string; phoneNumber: string 
+    [x: string]: string; fullName:string ; phoneNumber: string 
 }> {
     try {
       const token = authService.getAuthToken();
@@ -74,8 +73,7 @@ export const usersService = {
       });
 
       return {
-        firstName: response.data.firstName,
-        lastName: response.data.lastName,
+        fullName: response.data.fullName,
         phoneNumber: response.data.phoneNumber,
       
       };

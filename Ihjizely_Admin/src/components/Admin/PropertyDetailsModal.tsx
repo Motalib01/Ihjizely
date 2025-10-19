@@ -228,7 +228,7 @@ export const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({ prop
                 <DetailItem
                   icon={<User className="w-5 h-5" />}
                   label="صاحب العمل"
-                  value={`${property.businessOwnerFirstName} ${property.businessOwnerLastName}`}
+                  value={property.businessOwnerFullName}
                 />
                 
                 <DetailItem
