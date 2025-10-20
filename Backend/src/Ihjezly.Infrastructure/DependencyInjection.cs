@@ -48,7 +48,10 @@ public static class DependencyInjection
 
         //Payment Service
         services.Configure<EdfaliOptions>(configuration.GetSection("EdfaliOptions"));
-        services.AddHttpClient<IEdfaliPaymentService, EdfaliPaymentService>();
+        services.AddHttpClient<IEdfaliPaymentService, EdfaliPaymentService>(client =>
+        {
+            client.Timeout = TimeSpan.FromMinutes(5);
+        });
 
         services.AddScoped<PayPalPaymentService>();
         services.AddScoped<StripePaymentService>();
